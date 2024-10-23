@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "29703974722",
+    "project_id": "evinti-application",
+    "storage_bucket": "evinti-application.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:29703974722:android:a845f658073bf3d90be2db",
+        "android_client_info": {
+          "package_name": "com.example.evinti_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiWHpJ3dzDrMMc1zVTrtTaNSbdyu7jbsg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

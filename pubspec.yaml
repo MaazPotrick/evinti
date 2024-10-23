@@ -1,0 +1,71 @@
+name: evinti_app
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  firebase_core: ^3.6.0
+  firebase_analytics: ^11.3.3
+  cupertino_icons: ^1.0.8
+  carousel_slider: ^5.0.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.3
+  intl: ^0.18.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Add assets for images
+  assets:
+    - assets/images/Bg1.png
+    - assets/images/Logo.png
+    - assets/images/mail.png
+    - assets/images/password.png
+    - assets/images/butterfly.png
+    - assets/images/profile.png
+    - assets/images/confirm.png
+    - assets/images/bg2.png
+    - assets/images/setting.png
+    - assets/images/more.png
+    - assets/images/search.png
+    - assets/images/home.png
+    - assets/images/filter.png
+    - assets/images/bell.png
+    - assets/images/close.png
+    - assets/images/heart.png
+    - assets/images/redheart.png
+    - assets/images/back.png
+    - assets/images/logout.png
+    - assets/images/bg3.png
+    - assets/images/Logo2.png
+    - assets/images/profile2.png
+    - assets/images/mail2.png
+    - assets/images/people.png
+    - assets/images/password2.png
+    - assets/images/confirm2.png
+    - assets/images/bg4.png
+    - assets/images/more2.png
+    - assets/images/setting2.png
+    - assets/images/back2.png
+
+  # Add custom fonts
+  fonts:
+    - family: AbrilFatface
+      fonts:
+        - asset: assets/fonts/AbrilFatface-Regular.ttf
+    - family: FredokaOne
+      fonts:
+        - asset: assets/fonts/FredokaOne-Regular.ttf
