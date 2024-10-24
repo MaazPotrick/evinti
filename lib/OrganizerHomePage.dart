@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'OrganizerEventDetails.dart'; // Import the event details page
 import 'OrganizerEventCreate.dart';
 import 'OrganizerManageEvent.dart'; // Import the Manage Events page
+import 'login.dart'; // Import the login page
 
 class OrganizerHomePage extends StatefulWidget {
   const OrganizerHomePage({Key? key}) : super(key: key);
@@ -51,9 +52,29 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
       _events = eventSnapshot.docs.map((doc) {
         Map<String, dynamic> eventData = doc.data() as Map<String, dynamic>;
         eventData['eventId'] = doc.id; // Store the event document ID (eventId)
+        // Handle both single venue ('venue') and multiple venues ('Venues')
+        if (eventData.containsKey('Venues')) {
+          eventData['venue'] = eventData['Venues'].join(', '); // Combine multiple venues into a single string
+        } else if (eventData.containsKey('venue')) {
+          eventData['venue'] = eventData['venue']; // Keep the single venue
+        } else {
+          eventData['venue'] = 'No venue specified'; // Default in case venue data is missing
+        }
         return eventData;
       }).toList();
+      // Debugging: Print total number of events fetched
+      print("Total events fetched: ${_events.length}");
     });
+  }
+
+  // Logout the user and navigate to the login screen
+  Future<void> _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+          (Route<dynamic> route) => false, // This removes all previous routes
+    );
   }
 
   @override
@@ -93,6 +114,9 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
               const SizedBox(height: 20),
               // Profile Button
               _buildDrawerButton(context, 'Profile'),
+              const SizedBox(height: 20),
+              // Logout Button
+              _buildDrawerButton(context, 'Logout', () => _logout(context)),
             ],
           ),
         ),

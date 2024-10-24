@@ -16,19 +16,12 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
   DateTime? _eventDate; // Date for the event
-  String? _selectedVenue; // Selected venue
+  List<String?> _selectedVenues = [null]; // List to store selected venues
   List<String> selectedTags = []; // List to store selected tags
+  List<String> _venues = []; // List to store venues from Firestore
+  bool _isLoadingVenues = true; // State to track loading of venues
 
   String? _clubName; // Store the organizer's club name
-
-  // List of hardcoded venues
-  final List<String> _venues = [
-    "LR605 & LR606",
-    "MPH",
-    "Rooftop",
-    "Classrooms",
-    "Level 5 foyer",
-  ];
 
   // List of available tags
   final List<String> _tags = [
@@ -39,6 +32,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
   void initState() {
     super.initState();
     _fetchOrganizerDetails(); // Fetch the organizer's club name
+    _fetchVenues(); // Fetch the venues from Firestore
   }
 
   Future<void> _fetchOrganizerDetails() async {
@@ -52,6 +46,24 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
       setState(() {
         _clubName = userDoc['clubName']; // Fetch the club name from the user document
       });
+    }
+  }
+
+  Future<void> _fetchVenues() async {
+    try {
+      // Fetch venues from Firestore
+      QuerySnapshot venueSnapshot = await FirebaseFirestore.instance.collection('venues').get();
+
+      setState(() {
+        _venues = venueSnapshot.docs.map((doc) => doc['name'] as String).toList();
+        _isLoadingVenues = false; // Loading is complete
+      });
+    } catch (error) {
+      // Handle error if needed
+      setState(() {
+        _isLoadingVenues = false; // Stop loading even if there's an error
+      });
+      print('Error fetching venues: $error');
     }
   }
 
@@ -121,7 +133,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
                     const SizedBox(height: 30),
                     _buildTextField(context, 'Event Name', _eventNameController),
                     const SizedBox(height: 20),
-                    _buildVenueDropdown(),
+                    _buildVenueDropdowns(), // Multiple venue dropdowns
                     const SizedBox(height: 20),
                     _buildDatePicker(context),
                     const SizedBox(height: 20),
@@ -182,28 +194,76 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
     );
   }
 
-  // Text Field Builder
-  Widget _buildTextField(BuildContext context, String label, TextEditingController controller, {bool isMultiline = false}) {
+  // Build venue dropdowns with a '+' button for adding more venues
+  Widget _buildVenueDropdowns() {
+    return Column(
+      children: List.generate(_selectedVenues.length, (index) {
+        return Row(
+          children: [
+            Expanded(
+              child: _buildVenueDropdown(index),
+            ),
+            if (_selectedVenues[index] != null && index == _selectedVenues.length - 1)
+              IconButton(
+                icon: Icon(Icons.add_circle, color: Color(0xFF801e15)),
+                onPressed: () {
+                  setState(() {
+                    _selectedVenues.add(null);
+                  });
+                },
+              ),
+            if (_selectedVenues.length > 1)
+              IconButton(
+                icon: Icon(Icons.remove_circle, color: Colors.red),
+                onPressed: () {
+                  setState(() {
+                    _selectedVenues.removeAt(index);
+                  });
+                },
+              ),
+          ],
+        );
+      }),
+    );
+  }
+
+  // Venue Dropdown Builder
+  Widget _buildVenueDropdown(int index) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'FredokaOne',
-            fontSize: 14,
-            color: Color(0xFF801e15),
+        if (index == 0)
+          const Text(
+            'Venue',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 14,
+              color: Color(0xFF801e15),
+            ),
           ),
-        ),
         const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          maxLines: isMultiline ? 5 : 1,
-          style: const TextStyle(
-            fontFamily: 'FredokaOne',
-            fontSize: 14,
-            color: Color(0xFF801e15),
-          ),
+        _isLoadingVenues
+            ? const CircularProgressIndicator()
+            : DropdownButtonFormField<String>(
+          value: _selectedVenues[index],
+          items: _venues.map((venue) {
+            return DropdownMenuItem(
+              value: venue,
+              child: Text(
+                venue,
+                style: const TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 14,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedVenues[index] = value;
+            });
+          },
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFFe8c9ab),
@@ -227,73 +287,23 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
     );
   }
 
-  // Time Picker Builder
-  Widget _buildTimePicker(BuildContext context, String label, TimeOfDay? selectedTime, Function(TimeOfDay) onTimePicked) {
-    return GestureDetector(
-      onTap: () async {
-        final pickedTime = await showTimePicker(
-          context: context,
-          initialTime: selectedTime ?? TimeOfDay.now(),
-        );
-        if (pickedTime != null) {
-          onTimePicked(pickedTime);
-        }
-      },
-      child: Container(
-        width: 130,
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(
-          color: const Color(0xFFe8c9ab),
-          border: Border.all(color: const Color(0xFF801e15), width: 2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          selectedTime?.format(context) ?? label,
-          textAlign: TextAlign.center,
+  // Text Field Builder
+  Widget _buildTextField(BuildContext context, String label, TextEditingController controller, {bool isMultiline = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
           style: const TextStyle(
             fontFamily: 'FredokaOne',
             fontSize: 14,
             color: Color(0xFF801e15),
           ),
         ),
-      ),
-    );
-  }
-
-  // Venue Dropdown Builder
-  Widget _buildVenueDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Venue',
-          style: TextStyle(
-            fontFamily: 'FredokaOne',
-            fontSize: 14,
-            color: Color(0xFF801e15),
-          ),
-        ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _selectedVenue,
-          items: _venues.map((venue) {
-            return DropdownMenuItem(
-              value: venue,
-              child: Text(
-                venue,
-                style: const TextStyle(
-                  fontFamily: 'FredokaOne',
-                  fontSize: 14,
-                  color: Color(0xFF801e15),
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedVenue = value;
-            });
-          },
+        TextField(
+          controller: controller,
+          maxLines: isMultiline ? 5 : 1,
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFFe8c9ab),
@@ -319,139 +329,179 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
 
   // Date Picker Builder
   Widget _buildDatePicker(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final pickedDate = await showDatePicker(
-          context: context,
-          initialDate: _eventDate ?? DateTime.now(),
-          firstDate: DateTime(2021),
-          lastDate: DateTime(2100),
-        );
-        if (pickedDate != null) {
-          setState(() {
-            _eventDate = pickedDate;
-          });
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(
-          color: const Color(0xFFe8c9ab),
-          border: Border.all(color: const Color(0xFF801e15), width: 2),
-          borderRadius: BorderRadius.circular(8),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Date',
+          style: TextStyle(
+            fontFamily: 'FredokaOne',
+            fontSize: 14,
+            color: Color(0xFF801e15),
+          ),
         ),
-        child: Text(
-          _eventDate != null ? '${_eventDate!.day}/${_eventDate!.month}/${_eventDate!.year}' : 'Select Date',
-          textAlign: TextAlign.center,
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2101),
+            );
+            if (pickedDate != null) {
+              setState(() {
+                _eventDate = pickedDate;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFe8c9ab),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF801e15), width: 2),
+            ),
+            child: Text(
+              _eventDate == null ? 'Select Date' : '${_eventDate!.day}/${_eventDate!.month}/${_eventDate!.year}',
+              style: const TextStyle(
+                fontFamily: 'FredokaOne',
+                fontSize: 14,
+                color: Color(0xFF801e15),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Time Picker Builder
+  Widget _buildTimePicker(BuildContext context, String label, TimeOfDay? time, Function(TimeOfDay) onTimeSelected) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
           style: const TextStyle(
             fontFamily: 'FredokaOne',
             fontSize: 14,
             color: Color(0xFF801e15),
           ),
         ),
-      ),
-    );
-  }
-
-  // Tag Selection Widget
-  Widget _buildTagSelection() {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: _tags.map((tag) {
-        final isSelected = selectedTags.contains(tag);
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              if (isSelected) {
-                selectedTags.remove(tag);
-              } else {
-                selectedTags.add(tag);
-              }
-            });
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            TimeOfDay? pickedTime = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay.now(),
+            );
+            if (pickedTime != null) {
+              onTimeSelected(pickedTime);
+            }
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF801e15) : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFF801e15),
-                width: 2,
-              ),
+              color: const Color(0xFFe8c9ab),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF801e15), width: 2),
             ),
             child: Text(
-              tag,
-              style: TextStyle(
+              time == null ? 'Select Time' : time.format(context),
+              style: const TextStyle(
                 fontFamily: 'FredokaOne',
-                fontSize: 16,
-                color: isSelected ? Colors.white : const Color(0xFF801e15),
+                fontSize: 14,
+                color: Color(0xFF801e15),
               ),
             ),
           ),
-        );
-      }).toList(),
+        ),
+      ],
     );
   }
 
-  // Save Event to Firebase
-  void _saveEvent() async {
-    if (_eventNameController.text.isEmpty ||
-        _selectedVenue == null ||
-        _descriptionController.text.isEmpty ||
-        _startTime == null ||
-        _endTime == null ||
-        _eventDate == null) {
-      // Show error if any field is empty
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please fill in all fields'),
-      ));
-      return;
+  // Build tag selection chips
+  Widget _buildTagSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Tags',
+          style: TextStyle(
+            fontFamily: 'FredokaOne',
+            fontSize: 14,
+            color: Color(0xFF801e15),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: _tags.map((tag) {
+            return FilterChip(
+              label: Text(
+                tag,
+                style: const TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 14,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+              selected: selectedTags.contains(tag),
+              onSelected: (isSelected) {
+                setState(() {
+                  if (isSelected) {
+                    selectedTags.add(tag);
+                  } else {
+                    selectedTags.remove(tag);
+                  }
+                });
+              },
+              backgroundColor: const Color(0xFFe8c9ab),
+              selectedColor: const Color(0xFF801e15),
+              checkmarkColor: const Color(0xFFe8c9ab),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  // Save event details to Firestore
+  Future<void> _saveEvent() async {
+    try {
+      // Save event data to Firestore
+      await FirebaseFirestore.instance.collection('events').add({
+        'eventName': _eventNameController.text,
+        'description': _descriptionController.text,
+        'venues': _selectedVenues.where((venue) => venue != null).toList(),
+        'date': _eventDate,
+        'startTime': _startTime?.format(context),
+        'endTime': _endTime?.format(context),
+        'tags': selectedTags,
+        'clubName': _clubName,
+      });
+
+      // Clear the form after saving
+      setState(() {
+        _eventNameController.clear();
+        _descriptionController.clear();
+        _startTime = null;
+        _endTime = null;
+        _eventDate = null;
+        _selectedVenues = [null];
+        selectedTags.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event created successfully!')),
+      );
+    } catch (error) {
+      // Handle error during save
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create event: $error')),
+      );
     }
-
-    if (_clubName == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Error fetching club information'),
-      ));
-      return;
-    }
-
-    // Generate a new document in the 'events' collection and get its eventId
-    DocumentReference eventRef = FirebaseFirestore.instance.collection('events').doc();
-
-    // Prepare event data
-    Map<String, dynamic> eventData = {
-      'eventId': eventRef.id,
-      'eventName': _eventNameController.text,
-      'venue': _selectedVenue,
-      'eventDate': _eventDate, // Save the date
-      'startTime': _startTime?.format(context),
-      'endTime': _endTime?.format(context),
-      'description': _descriptionController.text,
-      'clubId': _clubName,
-      'tags': selectedTags, // Save the tags
-      'createdAt': Timestamp.now(),
-      'isVenueApproved': false,
-    };
-
-    // Save event data to Firestore
-    await eventRef.set(eventData);
-
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Event created successfully!'),
-    ));
-
-    // Clear form fields after saving
-    _eventNameController.clear();
-    _descriptionController.clear();
-    setState(() {
-      _startTime = null;
-      _endTime = null;
-      _eventDate = null;
-      _selectedVenue = null;
-      selectedTags.clear();
-    });
   }
 }
