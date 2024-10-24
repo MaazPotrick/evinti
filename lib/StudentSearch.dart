@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:intl/intl.dart'; // Import intl for DateFormat
 import 'StudentHome.dart';
 import 'StudentProfile.dart';
 import 'StudentEventDetails.dart'; // Import StudentEventDetails
@@ -171,6 +172,12 @@ class _StudentSearchState extends State<StudentSearch> {
                           final eventDescription = eventData['description'] ?? 'No description';
                           final eventId = filteredEvents[index].id;
 
+                          // Format eventDate
+                          final eventDateTimestamp = eventData['eventDate'];
+                          final formattedEventDate = eventDateTimestamp != null
+                              ? DateFormat('yyyy-MM-dd').format((eventDateTimestamp as Timestamp).toDate())
+                              : 'No Event Date';
+
                           return GestureDetector(
                             onTap: () {
                               // Navigate to StudentEventDetails and pass event details
@@ -184,6 +191,7 @@ class _StudentSearchState extends State<StudentSearch> {
                                     startTime: eventData['startTime'] ?? 'No Start Time',  // Pass start time
                                     endTime: eventData['endTime'] ?? 'No End Time',
                                     eventId: eventId,
+                                    eventDate: formattedEventDate, // Pass formatted date
                                   ),
                                 ),
                               );

@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // To get the current logged-in user
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Import local notifications
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:intl/intl.dart';
+
+// Initialize the local notifications plugin
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
 
 class StudentEventDetails extends StatefulWidget {
   final String eventName;
@@ -9,6 +17,7 @@ class StudentEventDetails extends StatefulWidget {
   final String startTime;    // Accept startTime
   final String endTime;      // Accept endTime
   final String eventId;      // Add eventId to identify the event
+  final String eventDate;
 
   // Constructor to receive the event data
   const StudentEventDetails({
@@ -18,7 +27,8 @@ class StudentEventDetails extends StatefulWidget {
     required this.eventDescription,
     required this.startTime,    // Initialize startTime
     required this.endTime,      // Initialize endTime
-    required this.eventId,      // Initialize eventId
+    required this.eventId,
+    required this.eventDate,    // Initialize eventDate
   }) : super(key: key);
 
   @override
@@ -32,6 +42,29 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
   void initState() {
     super.initState();
     _checkIfLiked(); // Check if the event is already liked
+    _initializeNotifications(); // Initialize notifications
+  }
+
+  // Function to initialize notifications
+  void _initializeNotifications() {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings =
+    InitializationSettings(android: initializationSettingsAndroid);
+
+    flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        // Handle notification tapped
+        if (response.payload != null) {
+          print('Notification payload: ${response.payload}');
+        }
+      },
+    );
+
+    // Initialize time zone data
+    tz.initializeTimeZones();
   }
 
   // Function to check if the event is already liked
@@ -58,59 +91,32 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
     }
   }
 
-  // Function to like the event
-  Future<void> _likeEvent() async {
-    try {
-      User? currentUser = FirebaseAuth.instance.currentUser;
-
-      if (currentUser != null) {
-        Map<String, dynamic> likedEventData = {
-          'eventId': widget.eventId,
-          'eventName': widget.eventName,
-          'eventVenue': widget.eventVenue,
-          'startTime': widget.startTime,
-          'endTime': widget.endTime,
-          'likedTime': Timestamp.now(),
-        };
-
-        // Save the liked event to Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .collection('likedEvents')
-            .doc(widget.eventId)
-            .set(likedEventData);
-
-        setState(() {
-          isLiked = true;
-        });
-      }
-    } catch (e) {
-      print('Error liking event: $e');
-    }
+  // Function to schedule a notification
+  Future<void> _scheduleNotification(String notificationTitle, String notificationBody) async {
+    await flutterLocalNotificationsPlugin.show(
+      widget.eventId.hashCode, // Use a unique notification ID
+      notificationTitle,
+      notificationBody,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'event_channel_id',
+          'Event Notifications',
+          channelDescription: 'Notifications for upcoming events',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      payload: 'Event Notification',
+    );
   }
 
-  // Function to unlike the event
-  Future<void> _unlikeEvent() async {
-    try {
-      User? currentUser = FirebaseAuth.instance.currentUser;
-
-      if (currentUser != null) {
-        // Remove the liked event from Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .collection('likedEvents')
-            .doc(widget.eventId)
-            .delete();
-
-        setState(() {
-          isLiked = false;
-        });
-      }
-    } catch (e) {
-      print('Error unliking event: $e');
-    }
+  // Schedule a notification for the registered event
+  Future<void> _scheduleEventNotification() async {
+    final String formattedDate = widget.eventDate;
+    await _scheduleNotification(
+      'Event Registered: ${widget.eventName}',
+      'You have registered for the event on $formattedDate.',
+    );
   }
 
   @override
@@ -289,14 +295,14 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();  // Close the dialog
+                Navigator.of(context).pop();
               },
               child: const Text('No'),
             ),
             TextButton(
               onPressed: () async {
-                await _registerForEvent(context);  // Register for the event first
-                Navigator.of(context).pop();  // Close the dialog after successful registration
+                await _registerForEvent(context);
+                Navigator.of(context).pop();
               },
               child: const Text('Yes'),
             ),
@@ -309,66 +315,111 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
   // Function to register the user for the event
   Future<void> _registerForEvent(BuildContext context) async {
     try {
-      // Get the current user's ID from Firebase Authentication
       User? currentUser = FirebaseAuth.instance.currentUser;
 
       if (currentUser != null) {
-        // Fetch the student's name from Firestore
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
             .get();
 
-        String studentName = userDoc['name'] ?? 'Anonymous'; // Use student's name if available, otherwise "Anonymous"
+        String studentName = userDoc['name'] ?? 'Anonymous';
 
-        // Create the data to save in the 'registeredEvents' collection of the user
         Map<String, dynamic> registeredEventData = {
-          'eventId': widget.eventId,         // Store the event ID
+          'eventId': widget.eventId,
           'eventName': widget.eventName,
           'eventVenue': widget.eventVenue,
           'startTime': widget.startTime,
           'endTime': widget.endTime,
-          'registrationTime': Timestamp.now(), // Store the time when the registration happened
-        };
-
-        // Save the registered event to the user's document in Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)  // Use the current user's ID
-            .collection('registeredEvents')  // Store registered events as a subcollection
-            .doc(widget.eventId)  // Use eventId as the document ID
-            .set(registeredEventData);
-
-        Map<String, dynamic> participantData = {
-          'userId': currentUser.uid,
-          'name': studentName, // Use the fetched name
-          'email': currentUser.email ?? 'No email provided',
+          'eventDate': widget.eventDate, // Save the event date as well
           'registrationTime': Timestamp.now(),
         };
 
-        // Also save the participant's information in the 'participants' subcollection of the event
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('registeredEvents')
+            .doc(widget.eventId)
+            .set(registeredEventData);
+
         await FirebaseFirestore.instance
             .collection('events')
             .doc(widget.eventId)
             .collection('participants')
-            .doc(currentUser.uid) // Use userId as the document ID for the participant
+            .doc(currentUser.uid)
             .set({
           'userId': currentUser.uid,
-          'name': studentName, // Save the student's name
+          'name': studentName,
           'email': currentUser.email ?? 'No email provided',
           'registrationTime': Timestamp.now(),
         });
 
-        // Show success message BEFORE navigating or dismissing the widget
+        // Schedule notification for the event registration
+        await _scheduleEventNotification();
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Successfully registered for the event!')),
         );
       }
     } catch (e) {
-      // Show error message if registration fails
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to register: $e')),
       );
+    }
+  }
+
+  // Function to like the event
+  Future<void> _likeEvent() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        Map<String, dynamic> likedEventData = {
+          'eventId': widget.eventId,
+          'eventName': widget.eventName,
+          'eventVenue': widget.eventVenue,
+          'startTime': widget.startTime,
+          'endTime': widget.endTime,
+          'likedTime': Timestamp.now(),
+        };
+
+        // Save the liked event to Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('likedEvents')
+            .doc(widget.eventId)
+            .set(likedEventData);
+
+        setState(() {
+          isLiked = true;
+        });
+      }
+    } catch (e) {
+      print('Error liking event: $e');
+    }
+  }
+
+  // Function to unlike the event
+  Future<void> _unlikeEvent() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        // Remove the liked event from Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('likedEvents')
+            .doc(widget.eventId)
+            .delete();
+
+        setState(() {
+          isLiked = false;
+        });
+      }
+    } catch (e) {
+      print('Error unliking event: $e');
     }
   }
 }

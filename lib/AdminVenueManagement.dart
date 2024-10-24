@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class AdminVenueManagement extends StatefulWidget {
   const AdminVenueManagement({Key? key}) : super(key: key);
@@ -11,28 +10,6 @@ class AdminVenueManagement extends StatefulWidget {
 
 class _AdminVenueManagementState extends State<AdminVenueManagement> {
   final TextEditingController _venueController = TextEditingController();
-
-  // Hardcoded admin credentials for bypassing Firestore rules
-  final String adminEmail = 'admin@example.com';
-  final String adminPassword = 'admin1234';
-
-  bool isAdmin = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkIfAdmin(); // Check if the logged-in user is the hardcoded admin
-  }
-
-  // Function to check if the current user is the hardcoded admin
-  void _checkIfAdmin() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null && user.email == adminEmail) {
-      setState(() {
-        isAdmin = true;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,9 +126,18 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
                                   color: Color(0xFF470b06),
                                 ),
                               ),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteVenue(venue.id), // Delete venue from the database
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: Colors.blue),
+                                    onPressed: () => _editVenueDialog(venue.id, venueName), // Edit venue name
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => _deleteVenue(venue.id), // Delete venue from the database
+                                  ),
+                                ],
                               ),
                             );
                           },
@@ -179,53 +165,93 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
       return;
     }
 
+    try {
+      await FirebaseFirestore.instance.collection('venues').add({
+        'name': venueName,
+      });
 
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      print("User is authenticated with UID: ${currentUser.uid}");
-      try {
-        await FirebaseFirestore.instance.collection('venues').add({
-          'name': venueName,
-        });
+      _venueController.clear();
 
-        _venueController.clear();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Venue added successfully.')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add venue: $e')),
-        );
-      }
-    } else {
-      print("User is not authenticated.");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You are not authenticated. Please log in again.')),
+        const SnackBar(content: Text('Venue added successfully.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add venue: $e')),
       );
     }
   }
 
   // Function to delete a venue from Firestore
   Future<void> _deleteVenue(String venueId) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      print("User is authenticated with UID: ${currentUser.uid}");
-      try {
-        await FirebaseFirestore.instance.collection('venues').doc(venueId).delete();
+    try {
+      await FirebaseFirestore.instance.collection('venues').doc(venueId).delete();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Venue deleted successfully.')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete venue: $e')),
-        );
-      }
-    } else {
-      print("User is not authenticated.");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You are not authenticated. Please log in again.')),
+        const SnackBar(content: Text('Venue deleted successfully.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete venue: $e')),
+      );
+    }
+  }
+
+  // Function to show edit venue dialog
+  void _editVenueDialog(String venueId, String currentName) {
+    final TextEditingController editController = TextEditingController(text: currentName);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Venue Name'),
+          content: TextField(
+            controller: editController,
+            decoration: const InputDecoration(
+              labelText: 'Venue Name',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _updateVenueName(venueId, editController.text.trim());
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Function to update the venue name in Firestore
+  Future<void> _updateVenueName(String venueId, String newName) async {
+    if (newName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Venue name cannot be empty.')),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance.collection('venues').doc(venueId).update({
+        'name': newName,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Venue name updated successfully.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update venue: $e')),
       );
     }
   }

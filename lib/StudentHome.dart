@@ -156,6 +156,7 @@ class _StudentHomeState extends State<StudentHome> {
                       // Extract event details from Firestore document
                       final eventData = event.data() as Map<String, dynamic>;
                       final eventId = event.id;
+                      final eventDate = (eventData['eventDate'] as Timestamp).toDate();
 
                       return GestureDetector(
                         onTap: () {
@@ -170,6 +171,7 @@ class _StudentHomeState extends State<StudentHome> {
                                 startTime: eventData['startTime'] ?? 'Not available',
                                 endTime: eventData['endTime'] ?? 'Not available',
                                 eventId: eventId,
+                                eventDate: DateFormat('yyyy-MM-dd').format(eventDate), // Pass formatted date
                               ),
                             ),
                           );
@@ -221,11 +223,11 @@ class _StudentHomeState extends State<StudentHome> {
                     // Sort events by startTime (most recent first)
                     final sortedEvents = events
                         .map((event) => event.data() as Map<String, dynamic>)
-                        .where((eventData) => eventData['eventDate'] != null) // Ensure there's a startTime
+                        .where((eventData) => eventData['eventDate'] != null) // Ensure there's an eventDate
                         .toList();
 
                     sortedEvents.sort((a, b) {
-                      // Convert startTime to DateTime, handling both Timestamp and String types
+                      // Convert eventDate to DateTime, handling Timestamp
                       DateTime aDate = (a['eventDate'] as Timestamp).toDate();
                       DateTime bDate = (b['eventDate'] as Timestamp).toDate();
                       return bDate.compareTo(aDate); // Most recent first
@@ -246,6 +248,8 @@ class _StudentHomeState extends State<StudentHome> {
                       ),
                       items: sortedEvents.map((eventData) {
                         final eventId = events.first.id;
+                        final eventDate = (eventData['eventDate'] as Timestamp).toDate();
+
                         return GestureDetector(
                           onTap: () {
                             // Navigate to StudentEventDetails with event data
@@ -259,6 +263,7 @@ class _StudentHomeState extends State<StudentHome> {
                                   startTime: eventData['startTime'] ?? 'Not available',
                                   endTime: eventData['endTime'] ?? 'Not available',
                                   eventId: eventId,
+                                  eventDate: DateFormat('yyyy-MM-dd').format(eventDate), // Pass formatted date
                                 ),
                               ),
                             );

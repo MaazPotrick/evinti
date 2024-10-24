@@ -17,10 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // Hardcoded admin credentials
-  final String adminEmail = 'admin@example.com';
-  final String adminPassword = 'admin1234';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -124,55 +120,57 @@ class _LoginScreenState extends State<LoginScreen> {
                       final password = passwordController.text.trim();
 
                       if (email.isNotEmpty && password.isNotEmpty) {
-                        if (email == adminEmail && password == adminPassword) {
-                          // Admin login
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const AdminHomePage()),
+                        try {
+                          // Authenticate the user with Firebase Authentication
+                          UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+                            email: email,
+                            password: password,
                           );
-                        } else {
-                          // Normal user login
-                          try {
-                            UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-                              email: email,
-                              password: password,
-                            );
 
-                            // Get user role from Firestore
-                            final userDoc = await FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(userCredential.user?.uid)
-                                .get();
+                          // Get the user's role from Firestore
+                          final userDoc = await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(userCredential.user?.uid)
+                              .get();
 
-                            if (userDoc.exists) {
-                              // Check the role field in Firestore
-                              final role = userDoc['role'];
-                              if (role == 'student') {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const StudentHome()),
-                                );
-                              } else if (role == 'organizer') {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const OrganizerHomePage()),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                  content: Text('Unknown role: $role'),
-                                ));
-                              }
+                          if (userDoc.exists) {
+                            // Check the 'role' field in Firestore
+                            final role = userDoc['role'];
+                            if (role == 'admin') {
+                              // Navigate to the Admin Home Page
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const AdminHomePage()),
+                              );
+                            } else if (role == 'student') {
+                              // Navigate to the Student Home Page
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const StudentHome()),
+                              );
+                            } else if (role == 'organizer') {
+                              // Navigate to the Organizer Home Page
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const OrganizerHomePage()),
+                              );
                             } else {
+                              // Show error if the role is unknown
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text('User not found in Firestore.'),
+                                content: Text('Unknown role: $role'),
                               ));
                             }
-                          } catch (e) {
-                            // Handle login error
+                          } else {
+                            // User not found in Firestore
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('Login failed: ${e.toString()}'),
+                              content: Text('User not found in Firestore.'),
                             ));
                           }
+                        } catch (e) {
+                          // Handle login error
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Login failed: ${e.toString()}'),
+                          ));
                         }
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
