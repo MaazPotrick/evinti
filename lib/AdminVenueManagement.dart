@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AdminVenueManagement extends StatefulWidget {
   const AdminVenueManagement({Key? key}) : super(key: key);
@@ -10,6 +11,28 @@ class AdminVenueManagement extends StatefulWidget {
 
 class _AdminVenueManagementState extends State<AdminVenueManagement> {
   final TextEditingController _venueController = TextEditingController();
+  String? userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserRole();
+  }
+
+  Future<void> _getUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (userDoc.exists) {
+        setState(() {
+          userRole = userDoc.data()?['role'];
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +93,7 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: _addVenue, // Add venue to the database
+                        onPressed: userRole == 'admin' ? _addVenue : null, // Only allow if admin
                         child: const Text(
                           'Add',
                           style: TextStyle(
@@ -126,7 +149,8 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
                                   color: Color(0xFF470b06),
                                 ),
                               ),
-                              trailing: Row(
+                              trailing: userRole == 'admin'
+                                  ? Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
@@ -138,7 +162,8 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
                                     onPressed: () => _deleteVenue(venue.id), // Delete venue from the database
                                   ),
                                 ],
-                              ),
+                              )
+                                  : null, // Disable edit/delete buttons if not admin
                             );
                           },
                         );
