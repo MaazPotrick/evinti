@@ -7,8 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/intl.dart';
 
 // Initialize the local notifications plugin
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 class StudentEventDetails extends StatefulWidget {
   final String eventName;
@@ -37,21 +36,22 @@ class StudentEventDetails extends StatefulWidget {
 
 class _StudentEventDetailsState extends State<StudentEventDetails> {
   bool isLiked = false; // Track if the event is liked or not
+  bool isRegistered = false; // Track if the user is already registered
+  bool canAttend = false; // Check if the "Attend Event" button can be enabled
 
   @override
   void initState() {
     super.initState();
     _checkIfLiked(); // Check if the event is already liked
+    _checkIfRegistered(); // Check if the user is already registered
     _initializeNotifications(); // Initialize notifications
   }
 
   // Function to initialize notifications
   void _initializeNotifications() {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initializationSettings =
-    InitializationSettings(android: initializationSettingsAndroid);
+    const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
 
     flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
@@ -88,6 +88,43 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
       }
     } catch (e) {
       print('Error checking liked event: $e');
+    }
+  }
+
+  // Function to check if the user is already registered for the event
+  Future<void> _checkIfRegistered() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        DocumentSnapshot registeredEvent = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('registeredEvents')
+            .doc(widget.eventId)
+            .get();
+
+        if (registeredEvent.exists) {
+          setState(() {
+            isRegistered = true;
+            _checkIfCanAttend(); // Check if the "Attend Event" button can be enabled
+          });
+        }
+      }
+    } catch (e) {
+      print('Error checking registration status: $e');
+    }
+  }
+
+  // Function to check if "Attend Event" can be enabled based on the event date
+  void _checkIfCanAttend() {
+    DateTime eventDate = DateFormat('yyyy-MM-dd').parse(widget.eventDate);
+    DateTime today = DateTime.now();
+
+    if (today.year == eventDate.year && today.month == eventDate.month && today.day == eventDate.day) {
+      setState(() {
+        canAttend = true;
+      });
     }
   }
 
@@ -252,7 +289,7 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
                   ),
                 ),
                 const Spacer(),
-                // Register Button
+                // Register or Attend Button
                 Center(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -262,12 +299,12 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {
-                      _showConfirmationDialog(context);  // Call confirmation dialog
-                    },
-                    child: const Text(
-                      'Register for Event',
-                      style: TextStyle(
+                    onPressed: isRegistered
+                        ? (canAttend ? () => _attendEvent() : null)
+                        : () => _showConfirmationDialog(context),
+                    child: Text(
+                      isRegistered ? 'Attend Event' : 'Register for Event',
+                      style: const TextStyle(
                         fontFamily: 'FredokaOne',
                         fontSize: 18,
                         color: Color(0xFFe8c9ab),
@@ -282,6 +319,40 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
         ],
       ),
     );
+  }
+
+  // Function to attend the event
+  Future<void> _attendEvent() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        Map<String, dynamic> attendedEventData = {
+          'eventId': widget.eventId,
+          'eventName': widget.eventName,
+          'eventVenue': widget.eventVenue,
+          'startTime': widget.startTime,
+          'endTime': widget.endTime,
+          'eventDate': widget.eventDate, // Save the event date as well
+          'attendedTime': Timestamp.now(),
+        };
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('attendedEvents')
+            .doc(widget.eventId)
+            .set(attendedEventData);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Enjoy your event!')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to attend the event: $e')),
+      );
+    }
   }
 
   // Show a confirmation dialog to register for the event
@@ -356,6 +427,10 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
 
         // Schedule notification for the event registration
         await _scheduleEventNotification();
+
+        setState(() {
+          isRegistered = true;
+        });
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Successfully registered for the event!')),
