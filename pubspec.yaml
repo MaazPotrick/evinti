@@ -65,6 +65,7 @@ flutter:
     - assets/images/more2.png
     - assets/images/setting2.png
     - assets/images/back2.png
+    - assets/images/transBg.png
 
   # Add custom fonts
   fonts:

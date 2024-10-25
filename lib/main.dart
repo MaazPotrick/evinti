@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase core
 import 'package:permission_handler/permission_handler.dart'; // Import permission handler
-import 'StudentSearch.dart';
 import 'login.dart';
+import 'SplashScreen.dart'; // Import the new SplashScreen
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Import local notifications
 import 'package:timezone/data/latest.dart' as tz; // Import timezone data
 import 'package:timezone/timezone.dart' as tz; // Import timezone package
@@ -81,7 +81,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: LoginScreen(),
+      home: SplashScreen(),
       debugShowCheckedModeBanner: false, // Optional: Hide debug banner
     );
   }
