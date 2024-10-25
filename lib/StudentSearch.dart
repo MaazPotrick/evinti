@@ -194,6 +194,7 @@ class _StudentSearchState extends State<StudentSearch> {
                                     endTime: eventData['endTime'] ?? 'No End Time',
                                     eventId: eventId,
                                     eventDate: formattedEventDate, // Pass formatted date
+                                    imageUrl: eventData['imageUrl'],
                                   ),
                                 ),
                               );

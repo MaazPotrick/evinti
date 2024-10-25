@@ -174,7 +174,9 @@ class _StudentHomeState extends State<StudentHome> {
                                 startTime: eventData['startTime'] ?? 'Not available',
                                 endTime: eventData['endTime'] ?? 'Not available',
                                 eventId: eventId,
-                                eventDate: DateFormat('yyyy-MM-dd').format(eventDate), // Pass formatted date
+                                eventDate: DateFormat('yyyy-MM-dd').format(eventDate),
+                                imageUrl: eventData['imageUrl'],
+                                // Pass formatted date
                               ),
                             ),
                           );
@@ -271,6 +273,7 @@ class _StudentHomeState extends State<StudentHome> {
                                   endTime: eventData['endTime'] ?? 'Not available',
                                   eventId: eventId,
                                   eventDate: DateFormat('yyyy-MM-dd').format(eventDate), // Pass formatted date
+                                  imageUrl: eventData['imageUrl'],
                                 ),
                               ),
                             );

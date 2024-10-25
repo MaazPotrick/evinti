@@ -17,6 +17,7 @@ class StudentEventDetails extends StatefulWidget {
   final String endTime;      // Accept endTime
   final String eventId;      // Add eventId to identify the event
   final String eventDate;
+  final String? imageUrl;
 
   // Constructor to receive the event data
   const StudentEventDetails({
@@ -27,7 +28,8 @@ class StudentEventDetails extends StatefulWidget {
     required this.startTime,    // Initialize startTime
     required this.endTime,      // Initialize endTime
     required this.eventId,
-    required this.eventDate,    // Initialize eventDate
+    required this.eventDate,
+    this.imageUrl,// Initialize eventDate
   }) : super(key: key);
 
   @override
@@ -224,14 +226,22 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(15),
+                              image: widget.imageUrl != null
+                                  ? DecorationImage(
+                                image: NetworkImage(widget.imageUrl!),
+                                fit: BoxFit.cover,
+                              )
+                                  : null,
                             ),
-                            child: const Center(
+                            child: widget.imageUrl == null
+                                ? const Center(
                               child: Icon(
                                 Icons.image,
                                 size: 100,
                                 color: Colors.grey,
                               ),
-                            ),
+                            )
+                                : null,
                           ),
                           // Heart Icon
                           Positioned(
