@@ -150,11 +150,12 @@ class _StudentSearchState extends State<StudentSearch> {
                         final eventData = event.data() as Map<String, dynamic>;
                         final eventName = eventData['eventName']?.toString().toLowerCase() ?? '';
                         final eventDescription = eventData['description']?.toString().toLowerCase() ?? '';
-                        final eventVenue = eventData['venue']?.toString().toLowerCase() ?? '';
+                        final venues = List<String>.from(eventData['venues'] ?? []);
+                        final eventVenues = venues.join(', ').toLowerCase();
 
                         return eventName.contains(searchQuery) ||
                             eventDescription.contains(searchQuery) ||
-                            eventVenue.contains(searchQuery);
+                            eventVenues.contains(searchQuery);
                       }).toList();
 
                       if (filteredEvents.isEmpty && searchQuery.isNotEmpty) {
@@ -168,7 +169,8 @@ class _StudentSearchState extends State<StudentSearch> {
                         itemBuilder: (context, index) {
                           final eventData = filteredEvents[index].data() as Map<String, dynamic>;
                           final eventName = eventData['eventName'] ?? 'Unnamed Event';
-                          final eventVenue = eventData['venue'] ?? 'Unknown Venue';
+                          final venues = List<String>.from(eventData['venues'] ?? []);
+                          final eventVenue = venues.isNotEmpty ? venues.join(', ') : 'Unknown Venue';
                           final eventDescription = eventData['description'] ?? 'No description';
                           final eventId = filteredEvents[index].id;
 

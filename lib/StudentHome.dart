@@ -157,6 +157,8 @@ class _StudentHomeState extends State<StudentHome> {
                       final eventData = event.data() as Map<String, dynamic>;
                       final eventId = event.id;
                       final eventDate = (eventData['eventDate'] as Timestamp).toDate();
+                      final venues = List<String>.from(eventData['venues'] ?? []);
+                      final venueText = venues.isNotEmpty ? venues.join(', ') : 'Unknown Venue';
 
                       return GestureDetector(
                         onTap: () {
@@ -166,7 +168,7 @@ class _StudentHomeState extends State<StudentHome> {
                             MaterialPageRoute(
                               builder: (context) => StudentEventDetails(
                                 eventName: eventData['eventName'] ?? 'Unknown Event',
-                                eventVenue: eventData['venue'] ?? 'Unknown Venue',
+                                eventVenue: venueText,
                                 eventDescription: eventData['description'] ?? 'No description available.',
                                 startTime: eventData['startTime'] ?? 'Not available',
                                 endTime: eventData['endTime'] ?? 'Not available',
@@ -178,7 +180,7 @@ class _StudentHomeState extends State<StudentHome> {
                         },
                         child: _buildEventCard(
                           eventData['eventName'] ?? 'Unknown Event',
-                          eventData['venue'] ?? 'Unknown Venue',
+                          venueText,
                         ),
                       );
                     }).toList(),
@@ -220,7 +222,7 @@ class _StudentHomeState extends State<StudentHome> {
                     // Fetch events from Firestore
                     final events = snapshot.data?.docs ?? [];
 
-                    // Sort events by startTime (most recent first)
+                    // Sort events by eventDate (most recent first)
                     final sortedEvents = events
                         .map((event) => event.data() as Map<String, dynamic>)
                         .where((eventData) => eventData['eventDate'] != null) // Ensure there's an eventDate
@@ -249,6 +251,8 @@ class _StudentHomeState extends State<StudentHome> {
                       items: sortedEvents.map((eventData) {
                         final eventId = events.first.id;
                         final eventDate = (eventData['eventDate'] as Timestamp).toDate();
+                        final venues = List<String>.from(eventData['venues'] ?? []);
+                        final venueText = venues.isNotEmpty ? venues.join(', ') : 'Unknown Venue';
 
                         return GestureDetector(
                           onTap: () {
@@ -258,7 +262,7 @@ class _StudentHomeState extends State<StudentHome> {
                               MaterialPageRoute(
                                 builder: (context) => StudentEventDetails(
                                   eventName: eventData['eventName'] ?? 'Unnamed Event',
-                                  eventVenue: eventData['venue'] ?? 'Unknown Venue',
+                                  eventVenue: venueText,
                                   eventDescription: eventData['description'] ?? 'No description available.',
                                   startTime: eventData['startTime'] ?? 'Not available',
                                   endTime: eventData['endTime'] ?? 'Not available',
@@ -270,7 +274,7 @@ class _StudentHomeState extends State<StudentHome> {
                           },
                           child: _buildEventCard(
                             eventData['eventName'] ?? 'Unnamed Event',
-                            eventData['venue'] ?? 'Unknown Venue',
+                            venueText,
                           ),
                         );
                       }).toList(),
