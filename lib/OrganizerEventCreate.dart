@@ -103,6 +103,122 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
     }
   }
 
+  Future<void> _showParticipantDialog(BuildContext context) async {
+    String? selectedOption;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab), // Use your app's styling
+          title: const Text(
+            "How many participants are you expecting for this event (approximate number)?",
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 18,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildParticipantOption(context, "30", (option) {
+                selectedOption = option;
+                Navigator.of(context).pop(); // Close the dialog
+              }),
+              _buildParticipantOption(context, "40-60", (option) {
+                selectedOption = option;
+                Navigator.of(context).pop(); // Close the dialog
+              }),
+              _buildParticipantOption(context, "Close to 100", (option) {
+                selectedOption = option;
+                Navigator.of(context).pop(); // Close the dialog
+              }),
+              _buildParticipantOption(context, "150", (option) {
+                selectedOption = option;
+                Navigator.of(context).pop(); // Close the dialog
+              }),
+            ],
+          ),
+        );
+      },
+    );
+
+// If an option was selected, show the recommended venue
+    if (selectedOption != null) {
+      String recommendedVenue = _getRecommendedVenue(selectedOption!);
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFFe8c9ab), // Use your app's styling
+            title: const Text(
+              "Recommended Venue",
+              style: TextStyle(
+                fontFamily: 'FredokaOne',
+                fontSize: 18,
+                color: Color(0xFF801e15),
+              ),
+            ),
+            content: Text(
+              "For that number of participants, $recommendedVenue is recommended.",
+              style: const TextStyle(
+                fontFamily: 'FredokaOne',
+                fontSize: 14,
+                color: Color(0xFF801e15),
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: const Text(
+                  "OK",
+                  style: TextStyle(
+                    fontFamily: 'FredokaOne',
+                    fontSize: 14,
+                    color: Color(0xFF801e15),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  String _getRecommendedVenue(String selectedOption) {
+    switch (selectedOption) {
+      case "30":
+        return "Classroom";
+      case "40-60":
+        return "LR605 and LR606";
+      case "Close to 100":
+        return "Lecture Theater or MPH";
+      case "150":
+        return "Rooftop";
+      default:
+        return "Unknown Venue";
+    }
+  }
+
+  Widget _buildParticipantOption(BuildContext context, String option, Function(String) onSelect) {
+    return ListTile(
+      title: Text(
+        option,
+        style: const TextStyle(
+          fontFamily: 'FredokaOne',
+          fontSize: 14,
+          color: Color(0xFF801e15),
+        ),
+      ),
+      onTap: () {
+        onSelect(option); // Pass the selected option to the callback
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -249,7 +365,12 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
         return Row(
           children: [
             Expanded(
-              child: _buildVenueDropdown(index),
+                child: GestureDetector(
+                  onTap: () async {
+                    await _showParticipantDialog(context); // Show participant dialog before selecting a venue
+                  },
+                  child: _buildVenueDropdown(index),
+                )
             ),
             if (_selectedVenues[index] != null && index == _selectedVenues.length - 1)
               IconButton(
@@ -282,7 +403,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
       children: [
         if (index == 0)
           const Text(
-            'Venue',
+            'Venue < click for recommendation ',
             style: TextStyle(
               fontFamily: 'FredokaOne',
               fontSize: 14,
