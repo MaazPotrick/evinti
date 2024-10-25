@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'OrganizerApprovedEvents.dart'; // Import the OrganizerApprovedEvents page
 import 'OrganizerRejectedEvents.dart';
 import 'OrganizerEventList.dart';
+import 'OrganizerEventParticipationGraph.dart';
 
 class OrganizerManageEvent extends StatelessWidget {
   const OrganizerManageEvent({Key? key}) : super(key: key);
@@ -104,8 +105,12 @@ class OrganizerManageEvent extends StatelessWidget {
                     context,
                     label: 'Graph of Participants',
                     onPressed: () {
-                      // Handle Graph of Participants button tap
-                      print('Graph of Participants tapped');
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrganizerEventParticipationGraph(),
+                          ),
+                      );
                     },
                   ),
                 ],
