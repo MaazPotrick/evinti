@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // To get the current user
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart'; // Import image_picker package
+import 'dart:io'; // Import for File handling
 
 class OrganizerEventCreate extends StatefulWidget {
   const OrganizerEventCreate({Key? key}) : super(key: key);
@@ -20,6 +23,8 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
   List<String> selectedTags = []; // List to store selected tags
   List<String> _venues = []; // List to store venues from Firestore
   bool _isLoadingVenues = true; // State to track loading of venues
+  File? _selectedImage; // File to store the selected image
+  String? _imageUrl; // Store the uploaded image URL
 
   String? _clubName; // Store the organizer's club name
   String? _clubId; // Store the organizer's club ID
@@ -66,6 +71,35 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
         _isLoadingVenues = false; // Stop loading even if there's an error
       });
       print('Error fetching venues: $error');
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _uploadImage() async {
+    if (_selectedImage == null) return;
+
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('event_images')
+          .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+      final uploadTask = storageRef.putFile(_selectedImage!);
+      final snapshot = await uploadTask.whenComplete(() {});
+      _imageUrl = await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      print('Error uploading image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload image: $e')),
+      );
     }
   }
 
@@ -119,17 +153,29 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
                     ),
                     const SizedBox(height: 20),
                     // Placeholder for event image
-                    Container(
-                      height: 200,
-                      width: 200,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.image,
-                        size: 100,
-                        color: Colors.black,
+                    // Image Upload Section
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        height: 200,
+                        width: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(8),
+                          image: _selectedImage != null
+                              ? DecorationImage(
+                            image: FileImage(_selectedImage!),
+                            fit: BoxFit.cover,
+                          )
+                              : null,
+                        ),
+                        child: _selectedImage == null
+                            ? const Icon(
+                          Icons.image,
+                          size: 100,
+                          color: Colors.black,
+                        )
+                            : null,
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -494,6 +540,16 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
       return; // Exit the method if club details are not loaded
     }
 
+    // Upload the image first and get the image URL
+    await _uploadImage();
+
+    if (_imageUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Failed to upload image.')),
+      );
+      return;
+    }
+
     try {
       // Prepare the event data
       Map<String, dynamic> eventData = {
@@ -508,6 +564,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
         'clubId': _clubId, // Add the club ID
         'createdBy': FirebaseAuth.instance.currentUser?.uid, // Save user ID as event creator
         'isVenueApproved': false, //setting the initial valuee as false, since not approved
+        'imageUrl': _imageUrl, // Save the uploaded image URL
       };
 
       // Save event to Firestore
@@ -527,6 +584,9 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
         _eventDate = null;
         _selectedVenues = [null];
         selectedTags = [];
+        _selectedImage = null;
+        _imageUrl = null;
+
       });
     } catch (error) {
       // Show error message

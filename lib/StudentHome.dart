@@ -159,6 +159,7 @@ class _StudentHomeState extends State<StudentHome> {
                       final eventDate = (eventData['eventDate'] as Timestamp).toDate();
                       final venues = List<String>.from(eventData['venues'] ?? []);
                       final venueText = venues.isNotEmpty ? venues.join(', ') : 'Unknown Venue';
+                      final imageUrl = eventData['imageUrl']; // Get the imageUrl
 
                       return GestureDetector(
                         onTap: () {
@@ -181,6 +182,7 @@ class _StudentHomeState extends State<StudentHome> {
                         child: _buildEventCard(
                           eventData['eventName'] ?? 'Unknown Event',
                           venueText,
+                          imageUrl, // Pass the imageUrl
                         ),
                       );
                     }).toList(),
@@ -253,6 +255,7 @@ class _StudentHomeState extends State<StudentHome> {
                         final eventDate = (eventData['eventDate'] as Timestamp).toDate();
                         final venues = List<String>.from(eventData['venues'] ?? []);
                         final venueText = venues.isNotEmpty ? venues.join(', ') : 'Unknown Venue';
+                        final imageUrl = eventData['imageUrl']; // Get the imageUrl
 
                         return GestureDetector(
                           onTap: () {
@@ -275,6 +278,7 @@ class _StudentHomeState extends State<StudentHome> {
                           child: _buildEventCard(
                             eventData['eventName'] ?? 'Unnamed Event',
                             venueText,
+                            imageUrl, // Pass the imageUrl
                           ),
                         );
                       }).toList(),
@@ -338,7 +342,7 @@ class _StudentHomeState extends State<StudentHome> {
   }
 
   // Method to build an event card dynamically
-  Widget _buildEventCard(String eventName, String eventVenue) {
+  Widget _buildEventCard(String eventName, String eventVenue, String? imageUrl) {
     return SizedBox(
       width: 300, // Explicit width to make the card wider
       child: Card(
@@ -350,7 +354,14 @@ class _StudentHomeState extends State<StudentHome> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.image, size: 60, color: Colors.grey), // Placeholder for event image
+            imageUrl != null
+                ? Image.network(
+              imageUrl,
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            )
+                : const Icon(Icons.image, size: 60, color: Colors.grey), // Placeholder for event image
             const SizedBox(height: 10),
             Text(
               eventName,

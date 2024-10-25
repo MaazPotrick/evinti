@@ -75,19 +75,27 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Placeholder for event image
+                  // Display event image if available, otherwise show placeholder
                   Container(
                     height: 200,
                     width: 200,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300], // Placeholder grey color
+                      color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(8),
+                      image: event['imageUrl'] != null
+                          ? DecorationImage(
+                        image: NetworkImage(event['imageUrl']),
+                        fit: BoxFit.cover,
+                      )
+                          : null,
                     ),
-                    child: const Icon(
+                    child: event['imageUrl'] == null
+                        ? const Icon(
                       Icons.image,
                       size: 100,
                       color: Colors.black,
-                    ),
+                    )
+                        : null,
                   ),
                   const SizedBox(height: 30),
                   // Event Details Text (Dynamically populated)
@@ -111,7 +119,8 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF56100a),
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -121,10 +130,12 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
                           final updatedEvent = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => OrganizerEventEdit(
-                                event: event,
-                                eventDocId: widget.eventDocId, // Pass the document ID for editing
-                              ),
+                              builder: (context) =>
+                                  OrganizerEventEdit(
+                                    event: event,
+                                    eventDocId: widget
+                                        .eventDocId, // Pass the document ID for editing
+                                  ),
                             ),
                           );
 
@@ -148,13 +159,15 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFab2d22),
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         onPressed: () {
-                          _confirmDeleteEvent(context); // Call delete confirmation
+                          _confirmDeleteEvent(
+                              context); // Call delete confirmation
                         },
                         child: const Text(
                           'delete',
@@ -224,7 +237,8 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
   Future<void> _deleteEvent(BuildContext context) async {
     try {
       // Use the passed Firestore document ID (eventDocId) to delete the event
-      await FirebaseFirestore.instance.collection('events').doc(widget.eventDocId).delete();
+      await FirebaseFirestore.instance.collection('events').doc(
+          widget.eventDocId).delete();
 
       // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -232,11 +246,13 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
       );
 
       // Navigate back to homepage and refresh
-      Navigator.of(context).popUntil((route) => route.isFirst); // Go back to homepage directly
+      Navigator.of(context).popUntil((route) =>
+      route.isFirst); // Go back to homepage directly
     } catch (e) {
       // Show error message if something goes wrong
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to delete the event. Please try again.')),
+        const SnackBar(
+            content: Text('Failed to delete the event. Please try again.')),
       );
     }
   }
