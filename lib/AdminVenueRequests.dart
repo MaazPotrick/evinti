@@ -77,9 +77,14 @@ class AdminVenueRequests extends StatelessWidget {
                             final event = events[index].data() as Map<String, dynamic>;
                             final eventId = events[index].id; // Get document ID
                             final eventName = event['eventName'] ?? 'Unnamed Event';
-                            final venueName = event['venue'] ?? 'Unknown Venue';
+                            final venues = event['venues'] ?? [];
 
-                            return _buildRequestCard(context, eventName, venueName, eventId);
+                            // Handle venues as a list of strings
+                            final venueNames = venues is List
+                                ? (venues as List).cast<String>().join(', ')
+                                : 'Unknown Venue';
+
+                            return _buildRequestCard(context, eventName, venueNames, eventId);
                           },
                         );
                       },
@@ -95,7 +100,7 @@ class AdminVenueRequests extends StatelessWidget {
   }
 
   // Build a request card dynamically
-  Widget _buildRequestCard(BuildContext context, String eventName, String venueName, String eventId) {
+  Widget _buildRequestCard(BuildContext context, String eventName, String venueNames, String eventId) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -125,7 +130,7 @@ class AdminVenueRequests extends StatelessWidget {
             ),
             const SizedBox(height: 5),
             Text(
-              venueName,
+              venueNames,
               style: const TextStyle(
                 fontFamily: 'FredokaOne',
                 fontSize: 16,

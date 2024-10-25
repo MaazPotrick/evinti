@@ -507,6 +507,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
         'clubName': _clubName,
         'clubId': _clubId, // Add the club ID
         'createdBy': FirebaseAuth.instance.currentUser?.uid, // Save user ID as event creator
+        'isVenueApproved': false, //setting the initial valuee as false, since not approved
       };
 
       // Save event to Firestore

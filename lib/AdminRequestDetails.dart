@@ -63,7 +63,13 @@ class AdminRequestDetails extends StatelessWidget {
 
                       final eventData = snapshot.data!.data() as Map<String, dynamic>;
                       final eventName = eventData['eventName'] ?? 'Unnamed Event';
-                      final venue = eventData['venue'] ?? 'Unknown Venue';
+                      final venues = eventData['venues'] ?? [];
+
+                      // Handle venues as a list of strings
+                      final venueNames = venues is List
+                          ? (venues as List).cast<String>().join(', ')
+                          : 'Unknown Venue';
+
                       final startTime = eventData['startTime'] ?? 'N/A';
                       final endTime = eventData['endTime'] ?? 'N/A';
 
@@ -71,7 +77,7 @@ class AdminRequestDetails extends StatelessWidget {
                         children: [
                           // Event Details
                           Text(
-                            'Event: $eventName\nVenue: $venue\nTime: $startTime - $endTime',
+                            'Event: $eventName\nVenues: $venueNames\nTime: $startTime - $endTime',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontFamily: 'FredokaOne',
@@ -114,7 +120,7 @@ class AdminRequestDetails extends StatelessWidget {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  await _rejectVenue(context);
+                                  await _showRejectionDialog(context);
                                 },
                                 child: const Text(
                                   'Reject',
@@ -163,19 +169,99 @@ class AdminRequestDetails extends StatelessWidget {
     }
   }
 
-  // Reject venue request (currently just deleting the event)
-  Future<void> _rejectVenue(BuildContext context) async {
+  // Show rejection dialog to get reason from admin
+  Future<void> _showRejectionDialog(BuildContext context) async {
+    final TextEditingController _reasonController = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Reject Venue Request',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 18,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: TextField(
+            controller: _reasonController,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: 'Enter reason for rejection',
+              filled: true,
+              fillColor: const Color(0xFFe8c9ab),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(
+                  color: Color(0xFF801e15),
+                  width: 2,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(
+                  color: Color(0xFF801e15),
+                  width: 2,
+                ),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Color(0xFF801e15),
+                  fontFamily: 'FredokaOne',
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+            TextButton(
+              child: const Text(
+                'Submit',
+                style: TextStyle(
+                  color: Color(0xFF801e15),
+                  fontFamily: 'FredokaOne',
+                ),
+              ),
+              onPressed: () async {
+                final reason = _reasonController.text.trim();
+                if (reason.isNotEmpty) {
+                  await _rejectVenue(context, reason); // Reject with reason
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please provide a reason for rejection.')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Reject venue request with a reason
+  Future<void> _rejectVenue(BuildContext context, String reason) async {
     try {
-      // Here, rejection can either mean deletion or another action.
-      // For now, we'll delete the event if rejected (this can be changed).
-      await FirebaseFirestore.instance.collection('events').doc(eventId).delete();
+      // Update Firestore to mark as rejected and save the reason
+      await FirebaseFirestore.instance.collection('events').doc(eventId).update({
+        'isVenueApproved': false,
+        'rejectionReason': reason,
+      });
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Venue request rejected and event deleted.')),
+        const SnackBar(content: Text('Venue request rejected.')),
       );
 
       // Navigate back to previous screen
+      Navigator.pop(context); // Close the dialog
       Navigator.pop(context); // Return to AdminVenueRequests page
     } catch (e) {
       // Handle errors if rejection fails

@@ -125,7 +125,7 @@ class _OrganizerApprovedEventsState extends State<OrganizerApprovedEvents> {
           ),
         ),
         subtitle: Text(
-          'Venue: ${event['venue'] ?? 'Unknown Venue'}\nDate: ${event['eventDate']?.toDate().toString().split(' ')[0] ?? 'Unknown Date'}',
+          'Venue: ${event['venues'] ?? 'Unknown Venue'}\nDate: ${event['eventDate']?.toDate().toString().split(' ')[0] ?? 'Unknown Date'}',
           style: const TextStyle(
             fontFamily: 'FredokaOne',
             fontSize: 14,
