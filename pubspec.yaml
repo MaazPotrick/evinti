@@ -66,6 +66,11 @@ flutter:
     - assets/images/setting2.png
     - assets/images/back2.png
     - assets/images/transBg.png
+    - assets/images/bronze.png
+    - assets/images/silver.png
+    - assets/images/gold.png
+    - assets/images/diamond.png
+    - assets/images/badge.png
 
   # Add custom fonts
   fonts:

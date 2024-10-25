@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login.dart';
 import 'StudentRegisteredEvent.dart';
 import 'StudentSaved.dart';
+import 'StudentBadgesPage.dart'; // Import the StudentBadgesPage
 
 class StudentProfile extends StatefulWidget {
   const StudentProfile({Key? key}) : super(key: key);
@@ -183,6 +184,29 @@ class _StudentProfileState extends State<StudentProfile> {
                       ),
                       label: const Text(
                         'Saved',
+                        style: TextStyle(
+                          fontFamily: 'FredokaOne',
+                          fontSize: 23,
+                          color: Color(0xFFe8c9ab),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // "View Badges" Button
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const StudentBadgesPage()),
+                        );
+                      },
+                      icon: Image.asset(
+                        'assets/images/badge.png', // Add a badge icon in your assets for this button
+                        height: 24,
+                        width: 24,
+                      ),
+                      label: const Text(
+                        'View Badges',
                         style: TextStyle(
                           fontFamily: 'FredokaOne',
                           fontSize: 23,

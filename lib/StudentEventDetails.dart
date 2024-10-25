@@ -29,7 +29,7 @@ class StudentEventDetails extends StatefulWidget {
     required this.endTime,      // Initialize endTime
     required this.eventId,
     required this.eventDate,
-    this.imageUrl,// Initialize eventDate
+    this.imageUrl, // Initialize eventDate
   }) : super(key: key);
 
   @override
@@ -347,12 +347,16 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
           'attendedTime': Timestamp.now(),
         };
 
+        // Save the attended event
         await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
             .collection('attendedEvents')
             .doc(widget.eventId)
             .set(attendedEventData);
+
+        // Check for badges
+        await _checkForBadge(currentUser.uid);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Enjoy your event!')),
@@ -361,6 +365,54 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to attend the event: $e')),
+      );
+    }
+  }
+
+  // Check and award badges based on attendance count
+  Future<void> _checkForBadge(String userId) async {
+    // Get the count of attended events
+    QuerySnapshot attendedEventsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('attendedEvents')
+        .get();
+
+    int attendedCount = attendedEventsSnapshot.size;
+
+    String? badgeTitle;
+    String? badgeImage;
+
+    if (attendedCount == 1) {
+      badgeTitle = "Attended 1 event";
+      badgeImage = "assets/images/bronze.png";
+    } else if (attendedCount == 10) {
+      badgeTitle = "Attended 10 events";
+      badgeImage = "assets/images/silver.png";
+    } else if (attendedCount == 50) {
+      badgeTitle = "Attended 50 events";
+      badgeImage = "assets/images/gold.png";
+    } else if (attendedCount == 100) {
+      badgeTitle = "Attended 100 events";
+      badgeImage = "assets/images/diamond.png";
+    }
+
+    // If a badge needs to be awarded
+    if (badgeTitle != null && badgeImage != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('badges')
+          .doc(badgeTitle)
+          .set({
+        'title': badgeTitle,
+        'imagePath': badgeImage,
+        'awardedTime': Timestamp.now(),
+      });
+
+      // Notify user about the new badge
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Congratulations! You earned a new badge: $badgeTitle')),
       );
     }
   }
