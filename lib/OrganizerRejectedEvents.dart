@@ -133,10 +133,52 @@ class _OrganizerRejectedEventsState extends State<OrganizerRejectedEvents> {
           ),
         ),
         onTap: () {
-          // Navigate to event details or perform any action if needed
-          print('Tapped on event: $eventId');
+          _showRejectionReasonDialog(context, event); // Show rejection reason dialog
         },
       ),
+    );
+  }
+
+  // Show Rejection Reason Dialog
+  Future<void> _showRejectionReasonDialog(BuildContext context, Map<String, dynamic> event) async {
+    final String rejectionReason = event['rejectionReason'] ?? 'No reason provided';
+
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Rejection Reason',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 18,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            rejectionReason,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF470b06),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'Close',
+                style: TextStyle(
+                  color: Color(0xFF801e15),
+                  fontFamily: 'FredokaOne',
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
