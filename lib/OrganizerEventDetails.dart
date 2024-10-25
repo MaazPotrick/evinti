@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';  // Firestore for database operations
-import 'OrganizerEventEdit.dart';  // Import the OrganizerEventEdit page
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore for database operations
+import 'OrganizerEventEdit.dart'; // Import the OrganizerEventEdit page
 
 class OrganizerEventDetails extends StatefulWidget {
   final Map<String, dynamic> event;
@@ -9,7 +9,7 @@ class OrganizerEventDetails extends StatefulWidget {
   const OrganizerEventDetails({
     Key? key,
     required this.event,
-    required this.eventDocId,  // Include document ID in constructor
+    required this.eventDocId, // Include document ID in constructor
   }) : super(key: key);
 
   @override
@@ -17,12 +17,12 @@ class OrganizerEventDetails extends StatefulWidget {
 }
 
 class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
-  late Map<String, dynamic> event;  // Store the event details
+  late Map<String, dynamic> event; // Store the event details
 
   @override
   void initState() {
     super.initState();
-    event = widget.event;  // Initialize event with the passed data
+    event = widget.event; // Initialize event with the passed data
   }
 
   @override
@@ -92,7 +92,7 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
                   const SizedBox(height: 30),
                   // Event Details Text (Dynamically populated)
                   Text(
-                    'Venue: ${event['venue']}\n\n'
+                    'Venue: ${_getVenuesText(event['venues'])}\n\n'
                         'Time: ${event['startTime']} - ${event['endTime']}\n\n'
                         '${event['description']}',
                     textAlign: TextAlign.center,
@@ -123,7 +123,7 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
                             MaterialPageRoute(
                               builder: (context) => OrganizerEventEdit(
                                 event: event,
-                                eventDocId: widget.eventDocId,  // Pass the document ID for editing
+                                eventDocId: widget.eventDocId, // Pass the document ID for editing
                               ),
                             ),
                           );
@@ -154,7 +154,7 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
                           ),
                         ),
                         onPressed: () {
-                          _confirmDeleteEvent(context);  // Call delete confirmation
+                          _confirmDeleteEvent(context); // Call delete confirmation
                         },
                         child: const Text(
                           'delete',
@@ -176,6 +176,22 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
     );
   }
 
+  // Helper function to display the list of venues
+  String _getVenuesText(dynamic venues) {
+    if (venues == null) {
+      return 'No venue specified'; // No venue provided
+    }
+    if (venues is String) {
+      return venues; // Single venue case
+    } else if (venues is List && venues.isNotEmpty) {
+      if (venues.length == 1) {
+        return venues[0]; // If the list has only one venue, display that
+      }
+      return venues.join(', '); // Multiple venues case
+    }
+    return 'No venue specified'; // Default fallback
+  }
+
   // Show confirmation dialog and delete event if confirmed
   void _confirmDeleteEvent(BuildContext context) {
     showDialog(
@@ -194,7 +210,7 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop(); // Close dialog if Yes
-                await _deleteEvent(context);  // Call delete function
+                await _deleteEvent(context); // Call delete function
               },
               child: const Text('Yes'),
             ),

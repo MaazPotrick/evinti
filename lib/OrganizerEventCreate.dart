@@ -22,6 +22,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
   bool _isLoadingVenues = true; // State to track loading of venues
 
   String? _clubName; // Store the organizer's club name
+  String? _clubId; // Store the organizer's club ID
 
   // List of available tags
   final List<String> _tags = [
@@ -31,7 +32,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
   @override
   void initState() {
     super.initState();
-    _fetchOrganizerDetails(); // Fetch the organizer's club name
+    _fetchOrganizerDetails(); // Fetch the organizer's club details
     _fetchVenues(); // Fetch the venues from Firestore
   }
 
@@ -45,6 +46,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
 
       setState(() {
         _clubName = userDoc['clubName']; // Fetch the club name from the user document
+        _clubId = _clubName; // Fetch the club ID from the user document
       });
     }
   }
@@ -303,7 +305,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
-          maxLines: isMultiline ? 5 : 1,
+          maxLines: isMultiline ? 4 : 1,
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFFe8c9ab),
@@ -333,7 +335,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Date',
+          'Event Date',
           style: TextStyle(
             fontFamily: 'FredokaOne',
             fontSize: 14,
@@ -343,32 +345,38 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
         const SizedBox(height: 8),
         GestureDetector(
           onTap: () async {
-            DateTime? pickedDate = await showDatePicker(
+            DateTime? selectedDate = await showDatePicker(
               context: context,
               initialDate: DateTime.now(),
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2101),
+              firstDate: DateTime.now(),
+              lastDate: DateTime(2100),
             );
-            if (pickedDate != null) {
-              setState(() {
-                _eventDate = pickedDate;
-              });
-            }
+            setState(() {
+              _eventDate = selectedDate;
+            });
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             decoration: BoxDecoration(
               color: const Color(0xFFe8c9ab),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFF801e15), width: 2),
             ),
-            child: Text(
-              _eventDate == null ? 'Select Date' : '${_eventDate!.day}/${_eventDate!.month}/${_eventDate!.year}',
-              style: const TextStyle(
-                fontFamily: 'FredokaOne',
-                fontSize: 14,
-                color: Color(0xFF801e15),
-              ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today, color: Color(0xFF801e15)),
+                const SizedBox(width: 10),
+                Text(
+                  _eventDate != null
+                      ? '${_eventDate!.day}/${_eventDate!.month}/${_eventDate!.year}'
+                      : 'Select Date',
+                  style: const TextStyle(
+                    fontFamily: 'FredokaOne',
+                    fontSize: 14,
+                    color: Color(0xFF801e15),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -377,7 +385,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
   }
 
   // Time Picker Builder
-  Widget _buildTimePicker(BuildContext context, String label, TimeOfDay? time, Function(TimeOfDay) onTimeSelected) {
+  Widget _buildTimePicker(BuildContext context, String label, TimeOfDay? selectedTime, Function(TimeOfDay) onTimeSelected) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -401,19 +409,25 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
             }
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             decoration: BoxDecoration(
               color: const Color(0xFFe8c9ab),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFF801e15), width: 2),
             ),
-            child: Text(
-              time == null ? 'Select Time' : time.format(context),
-              style: const TextStyle(
-                fontFamily: 'FredokaOne',
-                fontSize: 14,
-                color: Color(0xFF801e15),
-              ),
+            child: Row(
+              children: [
+                const Icon(Icons.access_time, color: Color(0xFF801e15)),
+                const SizedBox(width: 10),
+                Text(
+                  selectedTime != null ? selectedTime.format(context) : 'Select Time',
+                  style: const TextStyle(
+                    fontFamily: 'FredokaOne',
+                    fontSize: 14,
+                    color: Color(0xFF801e15),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -421,7 +435,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
     );
   }
 
-  // Build tag selection chips
+  // Tag Selection Builder
   Widget _buildTagSelection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,9 +450,10 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
         ),
         const SizedBox(height: 8),
         Wrap(
-          spacing: 8.0,
-          runSpacing: 8.0,
+          spacing: 8,
+          runSpacing: 8,
           children: _tags.map((tag) {
+            final isSelected = selectedTags.contains(tag);
             return FilterChip(
               label: Text(
                 tag,
@@ -448,19 +463,19 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
                   color: Color(0xFF801e15),
                 ),
               ),
-              selected: selectedTags.contains(tag),
-              onSelected: (isSelected) {
+              selected: isSelected,
+              onSelected: (selected) {
                 setState(() {
-                  if (isSelected) {
+                  if (selected) {
                     selectedTags.add(tag);
                   } else {
                     selectedTags.remove(tag);
                   }
                 });
               },
-              backgroundColor: const Color(0xFFe8c9ab),
-              selectedColor: const Color(0xFF801e15),
-              checkmarkColor: const Color(0xFFe8c9ab),
+              selectedColor: const Color(0xFFe8c9ab),
+              backgroundColor: const Color(0xFF801e15),
+              checkmarkColor: const Color(0xFF801e15),
             );
           }).toList(),
         ),
@@ -468,39 +483,54 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
     );
   }
 
-  // Save event details to Firestore
+  // Save event to Firestore
   Future<void> _saveEvent() async {
+    if (_clubId == null || _clubName == null) {
+      // Show an error message if club details are not yet fetched
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Error: Club details not loaded. Please try again.')),
+      );
+      return; // Exit the method if club details are not loaded
+    }
+
     try {
-      // Save event data to Firestore
-      await FirebaseFirestore.instance.collection('events').add({
+      // Prepare the event data
+      Map<String, dynamic> eventData = {
         'eventName': _eventNameController.text,
         'description': _descriptionController.text,
-        'venues': _selectedVenues.where((venue) => venue != null).toList(),
-        'date': _eventDate,
-        'startTime': _startTime?.format(context),
-        'endTime': _endTime?.format(context),
+        'startTime': _startTime != null ? _startTime!.format(context) : null,
+        'endTime': _endTime != null ? _endTime!.format(context) : null,
+        'eventDate': _eventDate,
+        'venues': _selectedVenues.whereType<String>().toList(), // Filter out null values
         'tags': selectedTags,
         'clubName': _clubName,
-      });
+        'clubId': _clubId, // Add the club ID
+        'createdBy': FirebaseAuth.instance.currentUser?.uid, // Save user ID as event creator
+      };
 
-      // Clear the form after saving
+      // Save event to Firestore
+      await FirebaseFirestore.instance.collection('events').add(eventData);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event created successfully!')),
+      );
+
+      // Clear form fields
+      _eventNameController.clear();
+      _descriptionController.clear();
       setState(() {
-        _eventNameController.clear();
-        _descriptionController.clear();
         _startTime = null;
         _endTime = null;
         _eventDate = null;
         _selectedVenues = [null];
-        selectedTags.clear();
+        selectedTags = [];
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Event created successfully!')),
-      );
     } catch (error) {
-      // Handle error during save
+      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create event: $error')),
+        SnackBar(content: Text('Error creating event: $error')),
       );
     }
   }
