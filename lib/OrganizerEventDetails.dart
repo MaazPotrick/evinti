@@ -207,30 +207,57 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
 
   // Show confirmation dialog and delete event if confirmed
   void _confirmDeleteEvent(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this event?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog if No
-              },
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close dialog if Yes
-                await _deleteEvent(context); // Call delete function
-              },
-              child: const Text('Yes'),
-            ),
-          ],
-        );
-      },
-    );
+    // Check if the event date is 3 days or more from today
+    DateTime eventDate = (event['eventDate'] as Timestamp).toDate();
+    DateTime currentDate = DateTime.now();
+
+    if (eventDate.isBefore(currentDate.add(const Duration(days: 3)))) {
+      // If the event is less than 3 days away, show a message box
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Cannot Delete Event'),
+            content: const Text(
+                'You cannot delete the event because it is less than 3 days away.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // If the event is 3 days or more away, show the delete confirmation dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Confirm Deletion'),
+            content: const Text('Are you sure you want to delete this event?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _deleteEvent(context);
+                },
+                child: const Text('Yes'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   // Delete the event from Firestore using document ID and navigate back to home
