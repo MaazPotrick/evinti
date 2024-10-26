@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'login.dart';
 import 'StudentRegisteredEvent.dart';
 import 'StudentSaved.dart';
-import 'StudentBadgesPage.dart'; // Import the StudentBadgesPage
+import 'StudentBadgesPage.dart';
 
 class StudentProfile extends StatefulWidget {
   const StudentProfile({Key? key}) : super(key: key);
@@ -17,14 +20,15 @@ class _StudentProfileState extends State<StudentProfile> {
   String? studentName;
   String? email;
   String? currentUserId; // Store userId
+  String? _profileImageUrl;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserDetails(); // Fetch the user details when the page loads
+    _fetchUserDetails();
   }
 
-  // Fetch user details from Firestore
+  // Fetch user details and profile picture from Firestore and Firebase Storage
   Future<void> _fetchUserDetails() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
 
@@ -33,7 +37,43 @@ class _StudentProfileState extends State<StudentProfile> {
       setState(() {
         studentName = userDoc['name'];
         email = currentUser.email;
-        currentUserId = currentUser.uid; // Save userId
+        currentUserId = currentUser.uid;
+      });
+
+      // Retrieve profile picture from Firebase Storage
+      try {
+        final ref = FirebaseStorage.instance.ref().child('profile_pictures/${currentUser.uid}.jpg');
+        _profileImageUrl = await ref.getDownloadURL();
+      } catch (e) {
+        // No profile picture exists
+        print("Error loading profile picture: $e"); // Debugging error
+        _profileImageUrl = null;
+      }
+      setState(() {}); // Update the UI
+    }
+  }
+
+  Future<void> _uploadProfilePicture() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      final ref = FirebaseStorage.instance.ref().child('profile_pictures/${user.uid}.jpg');
+
+      await ref.putFile(file);
+      final url = await ref.getDownloadURL();
+
+      setState(() {
+        _profileImageUrl = url;
+      });
+
+      // Optional: Save profile picture URL to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'profileImageUrl': url,
       });
     }
   }
@@ -44,7 +84,7 @@ class _StudentProfileState extends State<StudentProfile> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
-          (Route<dynamic> route) => false, // This removes all previous routes
+          (Route<dynamic> route) => false,
     );
   }
 
@@ -62,7 +102,6 @@ class _StudentProfileState extends State<StudentProfile> {
               ),
             ),
           ),
-          // Content
           Column(
             children: [
               const SizedBox(height: 50),
@@ -73,7 +112,7 @@ class _StudentProfileState extends State<StudentProfile> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
-                      width: 55, // Smaller size for the back icon
+                      width: 55,
                       height: 55,
                       child: IconButton(
                         icon: Image.asset('assets/images/back.png'),
@@ -84,28 +123,54 @@ class _StudentProfileState extends State<StudentProfile> {
                     ),
                     Image.asset(
                       'assets/images/Logo.png',
-                      height: 90, // Logo size
+                      height: 90,
                     ),
                     SizedBox(
-                      width: 55, // Logout icon
+                      width: 55,
                       height: 55,
                       child: IconButton(
                         icon: Image.asset('assets/images/logout.png'),
-                        onPressed: () => _logout(context), // Call logout method
+                        onPressed: () => _logout(context),
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-              // Profile Picture
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.white,
-                child: Image.asset(
-                  'assets/images/profile.png',
-                  height: 60,
-                  width: 60,
+              // Profile Picture with Edit Icon
+              Center(
+                child: SizedBox(
+                  width: 120,
+                  height: 100,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white,
+                        backgroundImage: _profileImageUrl != null ? NetworkImage(_profileImageUrl!) : null,
+                        child: _profileImageUrl == null
+                            ? Image.asset(
+                          'assets/images/profile.png',
+                          height: 60,
+                          width: 60,
+                        )
+                            : null,
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 10,
+                        child: GestureDetector(
+                          onTap: _uploadProfilePicture,
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Image.asset('assets/images/pencil.png'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -145,7 +210,7 @@ class _StudentProfileState extends State<StudentProfile> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StudentRegisteredEvent(userId: currentUserId!), // Pass the userId to StudentRegisteredEvent page
+                              builder: (context) => StudentRegisteredEvent(userId: currentUserId!),
                             ),
                           );
                         }
@@ -172,7 +237,7 @@ class _StudentProfileState extends State<StudentProfile> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StudentSaved(userId: currentUserId!), // Pass the userId to StudentSaved page
+                              builder: (context) => StudentSaved(userId: currentUserId!),
                             ),
                           );
                         }
@@ -201,7 +266,7 @@ class _StudentProfileState extends State<StudentProfile> {
                         );
                       },
                       icon: Image.asset(
-                        'assets/images/badge.png', // Add a badge icon in your assets for this button
+                        'assets/images/badge.png',
                         height: 24,
                         width: 24,
                       ),

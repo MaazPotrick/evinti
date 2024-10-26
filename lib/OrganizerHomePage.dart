@@ -5,6 +5,7 @@ import 'OrganizerEventDetails.dart'; // Import the event details page
 import 'OrganizerEventCreate.dart';
 import 'OrganizerManageEvent.dart'; // Import the Manage Events page
 import 'login.dart'; // Import the login page
+import 'OrganizerProfile.dart';
 
 class OrganizerHomePage extends StatefulWidget {
   const OrganizerHomePage({Key? key}) : super(key: key);
@@ -113,7 +114,12 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
               }),
               const SizedBox(height: 20),
               // Profile Button
-              _buildDrawerButton(context, 'Profile'),
+              _buildDrawerButton(context, 'Profile', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrganizerProfile()),
+                );
+              }),
               const SizedBox(height: 20),
               // Logout Button
               _buildDrawerButton(context, 'Logout', () => _logout(context)),
