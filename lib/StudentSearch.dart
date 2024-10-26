@@ -39,28 +39,13 @@ class _StudentSearchState extends State<StudentSearch> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: 60,
-                        height: 60,
-                        child: IconButton(
-                          icon: Image.asset('assets/images/setting.png'),
-                          onPressed: () {},
-                        ),
+                      // Centered Logo
+                      Image.asset(
+                        'assets/images/Logo.png',
+                        height: 100, // Keep logo bigger
                       ),
-                      Expanded(
-                        child: Center(
-                          child: Image.asset(
-                            'assets/images/Logo.png',
-                            height: 100, // Keep logo bigger
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 60,
-                        height: 60,
-                      ), // Placeholder to balance the layout
                     ],
                   ),
                 ),

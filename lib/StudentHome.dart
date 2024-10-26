@@ -65,28 +65,12 @@ class _StudentHomeState extends State<StudentHome> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: IconButton(
-                        icon: Image.asset('assets/images/setting.png'),
-                        onPressed: () {},
-                      ),
-                    ),
                     Expanded(
                       child: Center(
                         child: Image.asset(
                           'assets/images/Logo.png',
                           height: 100, // Keep logo bigger
                         ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: IconButton(
-                        icon: Image.asset('assets/images/more.png'),
-                        onPressed: () {},
                       ),
                     ),
                   ],

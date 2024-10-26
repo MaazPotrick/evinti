@@ -166,7 +166,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                         width: 50,
                         child: GestureDetector(
                           onTap: () => _fetchClubEvents(_clubName!), // Refresh when tapped
-                          child: Image.asset('assets/images/setting2.png'),
+                          child: Image.asset('assets/images/refresh.png'),
                         ),
                       ),
                     ],
