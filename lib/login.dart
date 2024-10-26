@@ -17,6 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  bool _isPasswordVisible = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +90,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         iconPath: 'assets/images/password.png',
                         hintText: '●●●●●●●●',
                         labelText: 'Password',
-                        obscureText: true,
+                        obscureText: !_isPasswordVisible,  // Updated to toggle visibility
+                        suffixIcon: IconButton(
+                          icon: Image.asset(
+                            _isPasswordVisible ? 'assets/images/openEye.png' : 'assets/images/closeEye.png',
+                            height: 20,
+                            width: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
                       ),
                       Positioned(
                         left: 0,
@@ -251,7 +265,8 @@ class _LoginScreenState extends State<LoginScreen> {
         required String hintText,
         required String labelText,
         required TextEditingController controller,
-        bool obscureText = false}) {
+        bool obscureText = false,
+        Widget? suffixIcon}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -305,6 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
               fontSize: 16,
               color: Color(0xFFe8c9ab),
             ),
+            suffixIcon: suffixIcon,
           ),
         ),
       ],
