@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class OrganizerEventEdit extends StatefulWidget {
   final Map<String, dynamic> event; // Event data passed from the previous page
@@ -21,10 +24,13 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
   List<String> _venues = []; // Available venues list from Firestore
   bool _isLoadingVenues = true; // Loading state for venues
   List<String> selectedTags = []; // Selected tags list
+  File? _selectedImage; // File to store the selected image
+  String? _imageUrl; // Store the uploaded image URL
 
   // List of available tags
   final List<String> _tags = [
-    "Music", "Sports", "Tech", "Arts", "Health", "Business",
+    "Music", "Sports", "Alternative", "Arts", "Health", "Business",
+    "Cultural", "Food", "Gaming", "Educational", "Socializing"
   ];
 
   @override
@@ -38,8 +44,40 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
     _eventDate = (widget.event['eventDate'] as Timestamp?)?.toDate();
     _selectedVenues = List<String>.from(widget.event['venues'] ?? [null]);
     selectedTags = List<String>.from(widget.event['tags'] ?? []);
+    _imageUrl = widget.event['imageUrl'] as String?; // Initialize image URL
 
     _fetchVenues(); // Fetch available venues from Firestore
+  }
+
+  // Method to select an image
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  // Method to upload the image to Firebase Storage
+  Future<void> _uploadImage() async {
+    if (_selectedImage == null) return;
+
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('event_images')
+          .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+      final uploadTask = storageRef.putFile(_selectedImage!);
+      final snapshot = await uploadTask.whenComplete(() {});
+      _imageUrl = await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      print('Error uploading image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload image: $e')),
+      );
+    }
   }
 
   // Fetch venues from Firestore
@@ -74,6 +112,39 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
       return TimeOfDay(hour: hour, minute: minute);
     }
     return null;
+  }
+
+  // Add a widget to display and select the event image
+  Widget _buildImagePicker() {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        height: 200,
+        width: 200,
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+          image: _selectedImage != null
+              ? DecorationImage(
+            image: FileImage(_selectedImage!),
+            fit: BoxFit.cover,
+          )
+              : _imageUrl != null
+              ? DecorationImage(
+            image: NetworkImage(_imageUrl!),
+            fit: BoxFit.cover,
+          )
+              : null,
+        ),
+        child: _selectedImage == null && _imageUrl == null
+            ? const Icon(
+          Icons.image,
+          size: 100,
+          color: Colors.black,
+        )
+            : null,
+      ),
+    );
   }
 
   @override
@@ -124,6 +195,8 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
                         color: Color(0xFF801e15),
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    _buildImagePicker(), // Image picker widget
                     const SizedBox(height: 20),
                     // Event Name Input
                     _buildTextField(context, 'Event Name', _eventNameController),
@@ -473,7 +546,7 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
                 });
               },
               selectedColor: const Color(0xFFe8c9ab),
-              backgroundColor: const Color(0xFF801e15),
+              backgroundColor: const Color(0xFFe8c9ab),
               checkmarkColor: const Color(0xFF801e15),
             );
           }).toList(),
@@ -497,6 +570,11 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
       return;
     }
 
+    // Upload image if a new one is selected
+    if (_selectedImage != null) {
+      await _uploadImage();
+    }
+
     // Prepare updated event data
     Map<String, dynamic> updatedEvent = {
       'eventName': _eventNameController.text,
@@ -506,6 +584,7 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
       'eventDate': _eventDate,
       'description': _descriptionController.text,
       'tags': selectedTags,
+      'imageUrl': _imageUrl, // Update with the new image URL
     };
 
     try {
