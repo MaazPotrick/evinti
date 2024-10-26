@@ -21,6 +21,9 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
   // Terms & Conditions Checkbox
   bool agreeToTerms = false;
 
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,7 +111,19 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
                     iconPath: 'assets/images/password2.png',
                     hintText: '●●●●●●●●',
                     labelText: 'Password',
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
+                    suffixIcon: IconButton(
+                      icon: Image.asset(
+                        _isPasswordVisible ? 'assets/images/openEye2.png' : 'assets/images/closeEye2.png',
+                        height: 20,
+                        width: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
                   ),
                   const SizedBox(height: 10), // Reduce space between fields
                   // Confirm Password Input
@@ -121,7 +136,19 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
                         iconPath: 'assets/images/confirm2.png',
                         hintText: '●●●●●●●●',
                         labelText: 'Confirm Password',
-                        obscureText: true,
+                        obscureText: !_isConfirmPasswordVisible,
+                        suffixIcon: IconButton(
+                          icon: Image.asset(
+                            _isConfirmPasswordVisible ? 'assets/images/openEye2.png' : 'assets/images/closeEye2.png',
+                            height: 20,
+                            width: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                            });
+                          },
+                        ),
                       ),
                       Positioned(
                         left: 0,
@@ -237,7 +264,8 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
         required String hintText,
         required String labelText,
         required TextEditingController controller,
-        bool obscureText = false}) {
+        bool obscureText = false,
+        Widget? suffixIcon}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -291,6 +319,7 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
               fontSize: 16,
               color: Color(0xFF801e15),
             ),
+            suffixIcon: suffixIcon,
           ),
         ),
       ],

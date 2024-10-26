@@ -73,6 +73,8 @@ flutter:
     - assets/images/badge.png
     - assets/images/closeEye.png
     - assets/images/openEye.png
+    - assets/images/openEye2.png
+    - assets/images/closeEye2.png
 
   # Add custom fonts
   fonts:

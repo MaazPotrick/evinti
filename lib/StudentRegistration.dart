@@ -21,6 +21,9 @@ class _StudentRegistrationState extends State<StudentRegistration> {
   // Terms & Conditions Checkbox
   bool agreeToTerms = false;
 
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,7 +102,19 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                     iconPath: 'assets/images/password.png',
                     hintText: '●●●●●●●●',
                     labelText: 'Password',
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
+                    suffixIcon: IconButton(
+                      icon: Image.asset(
+                        _isPasswordVisible ? 'assets/images/openEye.png' : 'assets/images/closeEye.png',
+                        height: 20,
+                        width: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
                   ),
                   const SizedBox(height: 20),
                   // Confirm Password Input
@@ -112,7 +127,19 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                         iconPath: 'assets/images/confirm.png',
                         hintText: '●●●●●●●●',
                         labelText: 'Confirm Password',
-                        obscureText: true,
+                        obscureText: !_isConfirmPasswordVisible,
+                        suffixIcon: IconButton(
+                          icon: Image.asset(
+                            _isConfirmPasswordVisible ? 'assets/images/openEye.png' : 'assets/images/closeEye.png',
+                            height: 20,
+                            width: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                            });
+                          },
+                        ),
                       ),
                       Positioned(
                         left: 0,
@@ -227,7 +254,8 @@ class _StudentRegistrationState extends State<StudentRegistration> {
         required String hintText,
         required String labelText,
         required TextEditingController controller,
-        bool obscureText = false}) {
+        bool obscureText = false,
+        Widget? suffixIcon}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -281,6 +309,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
               fontSize: 16,
               color: Color(0xFFe8c9ab),
             ),
+            suffixIcon: suffixIcon,
           ),
         ),
       ],
