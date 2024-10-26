@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:confetti/confetti.dart';
 import 'OrganizerHomePage.dart';
 
 class OrganizerRegistration extends StatefulWidget {
@@ -23,6 +24,9 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+
+  // Confetti controller for celebration
+  final ConfettiController _confettiController = ConfettiController(duration: const Duration(seconds: 2));
 
   bool isPasswordValid(String password) {
     final passwordRegex = RegExp(
@@ -79,43 +83,59 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
 
   // Function to show a success message box
   void showSuccessDialog(String message) {
+    _confettiController.play(); // Start confetti animation
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFFe8c9ab), // Custom success color
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          title: const Text(
-            'Success',
-            style: TextStyle(
-              fontFamily: 'FredokaOne',
-              fontSize: 20,
-              color: Color(0xFF801e15),
+        return Stack(
+          children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                emissionFrequency: 0.05,
+                numberOfParticles: 30,
+                gravity: 0.3,
+              ),
             ),
-          ),
-          content: Text(
-            message,
-            style: const TextStyle(
-              fontFamily: 'FredokaOne',
-              fontSize: 16,
-              color: Color(0xFF801e15),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'OK',
+            AlertDialog(
+              backgroundColor: const Color(0xFFe8c9ab),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              title: const Text(
+                'Success',
                 style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 20,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+              content: Text(
+                message,
+                style: const TextStyle(
                   fontFamily: 'FredokaOne',
                   fontSize: 16,
                   color: Color(0xFF801e15),
                 ),
               ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _confettiController.stop(); // Stop confetti when dialog is closed
+                  },
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(
+                      fontFamily: 'FredokaOne',
+                      fontSize: 16,
+                      color: Color(0xFF801e15),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -356,6 +376,12 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose(); // Dispose of the confetti controller
+    super.dispose();
   }
 
   Widget _buildTextField(BuildContext context,
