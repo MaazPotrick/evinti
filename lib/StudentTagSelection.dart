@@ -11,12 +11,8 @@ class StudentTagSelection extends StatefulWidget {
 class _StudentTagSelectionState extends State<StudentTagSelection> {
   // List of available tags
   List<String> allTags = [
-    "Music", "Alternative", "Blues & Jazz", "Classical", "Country",
-    "Cultural", "EDM / Electronic", "Folk", "Hip Hop / Rap",
-    "Indie", "Latin", "Metal", "Opera", "Pop", "R&B", "Reggae",
-    "Religious/Spiritual", "Rock", "Top 40", "Acoustic",
-    "Americana", "Bluegrass", "Blues", "DJ/Dance", "Experimental",
-    "Psychedelic", "Punk/Hardcore"
+    "Music", "Alternative", "Cultural", "Educational", "Food", "Gaming",
+    "Socializing", "Sports", "Arts", "Business", "Health"
   ];
   List<String> selectedTags = []; // List to hold the selected tags
 

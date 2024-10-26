@@ -31,7 +31,8 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
 
   // List of available tags
   final List<String> _tags = [
-    "Music", "Sports", "Tech", "Arts", "Health", "Business",
+    "Music", "Sports", "Alternative", "Arts", "Health", "Business",
+    "Cultural", "Food", "Gaming", "Educational", "Socializing"
   ];
 
   @override
@@ -641,7 +642,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
                 });
               },
               selectedColor: const Color(0xFFe8c9ab),
-              backgroundColor: const Color(0xFF801e15),
+              backgroundColor: const Color(0xFFe8c9ab),
               checkmarkColor: const Color(0xFF801e15),
             );
           }).toList(),
