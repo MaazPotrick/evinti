@@ -145,7 +145,7 @@ class _StudentHomeState extends State<StudentHome> {
 
                   return CarouselSlider(
                     options: CarouselOptions(
-                      height: 250, // Increased height for a longer card
+                      height: 260, // Increased height for a longer card
                       enlargeCenterPage: true,
                       autoPlay: false,
                       aspectRatio: 16 / 9,
@@ -245,7 +245,7 @@ class _StudentHomeState extends State<StudentHome> {
 
                     return CarouselSlider(
                       options: CarouselOptions(
-                        height: 250, // Increased height for a longer card
+                        height: 260, // Increased height for a longer card
                         enlargeCenterPage: true,
                         autoPlay: false,
                         aspectRatio: 16 / 9,
