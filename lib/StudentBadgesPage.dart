@@ -18,6 +18,52 @@ class _StudentBadgesPageState extends State<StudentBadgesPage> {
     _fetchBadges();
   }
 
+  // Function to show an error message box
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF801e15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFFe8c9ab),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFFe8c9ab),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFFe8c9ab),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Function to fetch badges from Firestore
   Future<void> _fetchBadges() async {
     try {
@@ -35,9 +81,7 @@ class _StudentBadgesPageState extends State<StudentBadgesPage> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch badges: $e')),
-      );
+      showErrorDialog('Failed to fetch badges: $e');
     }
   }
 

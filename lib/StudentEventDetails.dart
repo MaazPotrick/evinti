@@ -49,6 +49,96 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
     _initializeNotifications(); // Initialize notifications
   }
 
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF801e15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFFe8c9ab),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFFe8c9ab),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFFe8c9ab),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF801e15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Success',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFFe8c9ab),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFFe8c9ab),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFFe8c9ab),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Function to initialize notifications
   void _initializeNotifications() {
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -358,14 +448,10 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
         // Check for badges
         await _checkForBadge(currentUser.uid);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enjoy your event!')),
-        );
+        showSuccessDialog('Enjoy your event!');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to attend the event: $e')),
-      );
+      showErrorDialog('Failed to attend the event: $e');
     }
   }
 
@@ -411,9 +497,7 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
       });
 
       // Notify user about the new badge
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Congratulations! You earned a new badge: $badgeTitle')),
-      );
+      showSuccessDialog('Congratulations! You earned a new badge: $badgeTitle');
     }
   }
 
@@ -494,14 +578,10 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
           isRegistered = true;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully registered for the event!')),
-        );
+        showSuccessDialog('Successfully registered for the event!');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to register: $e')),
-      );
+      showErrorDialog('Failed to register: $e');
     }
   }
 

@@ -42,6 +42,96 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
     _fetchVenues(); // Fetch the venues from Firestore
   }
 
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Success',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _fetchOrganizerDetails() async {
     // Get the current user's ID
     String? userId = FirebaseAuth.instance.currentUser?.uid;
@@ -98,9 +188,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
       _imageUrl = await snapshot.ref.getDownloadURL();
     } catch (e) {
       print('Error uploading image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload image: $e')),
-      );
+      showErrorDialog('Failed to upload image: $e');
     }
   }
 
@@ -655,10 +743,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
   Future<void> _saveEvent() async {
     if (_clubId == null || _clubName == null) {
       // Show an error message if club details are not yet fetched
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Error: Club details not loaded. Please try again.')),
-      );
+      showErrorDialog('Error: Club details not loaded. Please try again.');
       return; // Exit the method if club details are not loaded
     }
 
@@ -666,9 +751,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
     await _uploadImage();
 
     if (_imageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Failed to upload image.')),
-      );
+      showErrorDialog('Error: Failed to upload image.');
       return;
     }
 
@@ -693,9 +776,8 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
       await FirebaseFirestore.instance.collection('events').add(eventData);
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Event created successfully!')),
-      );
+      showSuccessDialog('Event created successfully!');
+
 
       // Clear form fields
       _eventNameController.clear();
@@ -712,9 +794,7 @@ class _OrganizerEventCreateState extends State<OrganizerEventCreate> {
       });
     } catch (error) {
       // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating event: $error')),
-      );
+      showErrorDialog('Error creating event: $error');
     }
   }
 }

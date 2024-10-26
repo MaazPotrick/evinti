@@ -16,6 +16,53 @@ class _StudentTagSelectionState extends State<StudentTagSelection> {
   ];
   List<String> selectedTags = []; // List to hold the selected tags
 
+
+  // Function to show a success dialog
+  void showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF801e15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Success',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFFe8c9ab),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFFe8c9ab),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFFe8c9ab),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _saveTags() async {
     // Save selected tags to a 'preferredTags' sub-collection under the user's document
     final user = FirebaseAuth.instance.currentUser;
@@ -35,13 +82,10 @@ class _StudentTagSelectionState extends State<StudentTagSelection> {
       }
 
       // Navigate to the login page after saving
+      showSuccessDialog('Preferences saved! Please log in.');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginScreen()),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Preferences saved! Please log in.')),
       );
     }
   }

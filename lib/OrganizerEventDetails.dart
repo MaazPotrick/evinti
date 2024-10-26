@@ -25,6 +25,96 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
     event = widget.event; // Initialize event with the passed data
   }
 
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Success',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -276,19 +366,15 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
           widget.eventDocId).delete();
 
       // Show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Event deleted successfully!')),
-      );
+      showSuccessDialog('Event deleted successfully!');
+
 
       // Navigate back to homepage and refresh
       Navigator.of(context).popUntil((route) =>
       route.isFirst); // Go back to homepage directly
     } catch (e) {
       // Show error message if something goes wrong
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Failed to delete the event. Please try again.')),
-      );
+      showErrorDialog('Failed to delete the event. Please try again.');
     }
   }
 }

@@ -6,6 +6,96 @@ class AdminRequestDetails extends StatelessWidget {
 
   const AdminRequestDetails({Key? key, required this.eventId}) : super(key: key);
 
+  void showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showSuccessDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Success',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -155,17 +245,13 @@ class AdminRequestDetails extends StatelessWidget {
       });
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Venue approved successfully!')),
-      );
+      showSuccessDialog(context, 'Venue approved successfully!');
 
       // Navigate back to previous screen
       Navigator.pop(context); // Return to AdminVenueRequests page
     } catch (e) {
       // Handle errors if approval fails
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to approve venue: $e')),
-      );
+      showErrorDialog(context, 'Failed to approve venue: $e');
     }
   }
 
@@ -234,9 +320,7 @@ class AdminRequestDetails extends StatelessWidget {
                 if (reason.isNotEmpty) {
                   await _rejectVenue(context, reason); // Reject with reason
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please provide a reason for rejection.')),
-                  );
+                  showSuccessDialog(context, 'Please provide a reason for rejection.');
                 }
               },
             ),
@@ -256,18 +340,14 @@ class AdminRequestDetails extends StatelessWidget {
       });
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Venue request rejected.')),
-      );
+      showSuccessDialog(context, 'Venue request rejected.');
 
       // Navigate back to previous screen
       Navigator.pop(context); // Close the dialog
       Navigator.pop(context); // Return to AdminVenueRequests page
     } catch (e) {
       // Handle errors if rejection fails
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to reject venue: $e')),
-      );
+      showErrorDialog(context, 'Failed to reject venue: $e');
     }
   }
 }

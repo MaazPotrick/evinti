@@ -34,6 +34,96 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
     }
   }
 
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Success',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,9 +274,7 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
     final venueName = _venueController.text.trim();
 
     if (venueName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a venue name.')),
-      );
+      showErrorDialog('Please enter a venue name.');
       return;
     }
 
@@ -197,13 +285,9 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
 
       _venueController.clear();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Venue added successfully.')),
-      );
+      showSuccessDialog('Venue added successfully.');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add venue: $e')),
-      );
+      showErrorDialog('Failed to add venue: $e');
     }
   }
 
@@ -212,13 +296,9 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
     try {
       await FirebaseFirestore.instance.collection('venues').doc(venueId).delete();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Venue deleted successfully.')),
-      );
+      showSuccessDialog('Venue deleted successfully.');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete venue: $e')),
-      );
+      showErrorDialog('Failed to delete venue: $e');
     }
   }
 
@@ -260,9 +340,7 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
   // Function to update the venue name in Firestore
   Future<void> _updateVenueName(String venueId, String newName) async {
     if (newName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Venue name cannot be empty.')),
-      );
+      showErrorDialog('Venue name cannot be empty.');
       return;
     }
 
@@ -271,13 +349,9 @@ class _AdminVenueManagementState extends State<AdminVenueManagement> {
         'name': newName,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Venue name updated successfully.')),
-      );
+      showSuccessDialog('Venue name updated successfully.');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update venue: $e')),
-      );
+      showErrorDialog('Failed to update venue: $e');
     }
   }
 }

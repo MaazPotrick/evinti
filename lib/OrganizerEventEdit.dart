@@ -49,6 +49,97 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
     _fetchVenues(); // Fetch available venues from Firestore
   }
 
+
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Success',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Method to select an image
   Future<void> _pickImage() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -74,9 +165,7 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
       _imageUrl = await snapshot.ref.getDownloadURL();
     } catch (e) {
       print('Error uploading image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload image: $e')),
-      );
+      showErrorDialog('Failed to upload image: $e');
     }
   }
 
@@ -564,9 +653,7 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
         _endTime == null ||
         _eventDate == null) {
       // Show error if any field is empty
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please fill in all fields'),
-      ));
+      showErrorDialog('Please fill in all fields');
       return;
     }
 
@@ -592,16 +679,11 @@ class _OrganizerEventEditState extends State<OrganizerEventEdit> {
       await FirebaseFirestore.instance.collection('events').doc(widget.eventDocId).update(updatedEvent);
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Event updated successfully!'),
-      ));
-
+      showSuccessDialog('Event updated successfully!');
       // Pass the updated event data back to the OrganizerEventDetails page
       Navigator.pop(context, updatedEvent); // Pass updated event data
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to update event: $e'),
-      ));
+      showErrorDialog('Failed to update event: $e');
     }
   }
 }

@@ -1,4 +1,3 @@
-import 'package:evinti_app/OrganizerRejectedEvents.dart';
 import 'package:flutter/material.dart';
 import 'OrganizerApprovedEvents.dart'; // Import the OrganizerApprovedEvents page
 import 'OrganizerRejectedEvents.dart';
