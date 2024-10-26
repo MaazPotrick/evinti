@@ -101,6 +101,7 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
                   // Event Details Text (Dynamically populated)
                   Text(
                     'Venue: ${_getVenuesText(event['venues'])}\n\n'
+                        'Date: ${_formatDate(event['eventDate'])}\n\n'
                         'Time: ${event['startTime']} - ${event['endTime']}\n\n'
                         '${event['description']}',
                     textAlign: TextAlign.center,
@@ -203,6 +204,13 @@ class _OrganizerEventDetailsState extends State<OrganizerEventDetails> {
       return venues.join(', '); // Multiple venues case
     }
     return 'No venue specified'; // Default fallback
+  }
+
+  // Helper function to format the date
+  String _formatDate(Timestamp? timestamp) {
+    if (timestamp == null) return 'No date specified';
+    DateTime date = timestamp.toDate();
+    return '${date.day}/${date.month}/${date.year}'; // Format as DD/MM/YYYY
   }
 
   // Show confirmation dialog and delete event if confirmed
