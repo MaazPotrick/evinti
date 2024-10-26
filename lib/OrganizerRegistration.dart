@@ -24,6 +24,105 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
+  bool isPasswordValid(String password) {
+    final passwordRegex = RegExp(
+      r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+    );
+    return passwordRegex.hasMatch(password);
+  }
+
+  // Function to show an error message box
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab), // Custom background color
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Function to show a success message box
+  void showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFe8c9ab), // Custom success color
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          title: const Text(
+            'Success',
+            style: TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 20,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'FredokaOne',
+              fontSize: 16,
+              color: Color(0xFF801e15),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'FredokaOne',
+                  fontSize: 16,
+                  color: Color(0xFF801e15),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -200,6 +299,12 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
                       ),
                     ),
                     onPressed: () async {
+
+                      if (!isPasswordValid(passwordController.text)) {
+                        showErrorDialog('Password must include at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character.');
+                        return;
+                      }
+
                       if (passwordController.text == confirmPasswordController.text && agreeToTerms) {
                         try {
                           // Register user with Firebase
@@ -225,20 +330,14 @@ class _OrganizerRegistrationState extends State<OrganizerRegistration> {
                             MaterialPageRoute(builder: (context) => const OrganizerHomePage()),
                           );
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Registration Successful!'))
-                          );
+                          showSuccessDialog('Registration Successful!');
                         } catch (e) {
                           // Show error message
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${e.toString()}'))
-                          );
+                          showErrorDialog('Error: ${e.toString()}');
                         }
                       } else {
                         // Handle validation error
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Passwords do not match or terms not agreed'))
-                        );
+                        showErrorDialog('Passwords do not match or terms not agreed.');
                       }
                     },
                     child: const Text(
