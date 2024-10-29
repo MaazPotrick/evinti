@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart'; // Import intl for DateFormat
 import 'StudentHome.dart';
 import 'StudentProfile.dart';
@@ -14,6 +15,24 @@ class StudentSearch extends StatefulWidget {
 
 class _StudentSearchState extends State<StudentSearch> {
   String searchQuery = "";  // Holds the user's search input
+  String? studentName;  // Holds the student's name
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  // Fetch student's name from Firestore
+  Future<void> _fetchUserName() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+      setState(() {
+        studentName = userDoc['name'] ?? 'Student'; // Use a default value if name is null
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,10 +70,10 @@ class _StudentSearchState extends State<StudentSearch> {
                 ),
                 const SizedBox(height: 30),
                 // Greeting Text
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    'Hi [User Name],\nwhich event are you looking for?',
+                    'Hi ${studentName ?? "Student"},\nwhich event are you looking for?',
                     style: TextStyle(
                       fontFamily: 'FredokaOne',
                       fontSize: 29,
