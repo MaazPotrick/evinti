@@ -555,6 +555,8 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
           'eventId': widget.eventId,
           'eventName': widget.eventName,
           'eventVenue': widget.eventVenue,
+          'description': widget.eventDescription,
+          'imageUrl': widget.imageUrl,
           'startTime': widget.startTime,
           'endTime': widget.endTime,
           'eventDate': widget.eventDate, // Save the event date as well
@@ -604,6 +606,8 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
           'eventId': widget.eventId,
           'eventName': widget.eventName,
           'eventVenue': widget.eventVenue,
+          'description': widget.eventDescription,
+          'imageUrl': widget.imageUrl,
           'startTime': widget.startTime,
           'endTime': widget.endTime,
           'likedTime': Timestamp.now(),

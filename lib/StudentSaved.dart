@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore to fe
 import 'StudentSearch.dart';
 import 'StudentHome.dart';
 import 'StudentProfile.dart';
+import 'StudentEventDetails.dart';
 
 class StudentSaved extends StatelessWidget {
   final String userId; // Accept userId as a parameter
@@ -78,8 +79,8 @@ class StudentSaved extends StatelessWidget {
                   child: StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('users')
-                        .doc(userId) // Filter by the logged-in user's ID
-                        .collection('likedEvents') // Retrieve the liked events collection
+                        .doc(userId)
+                        .collection('likedEvents')
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
@@ -105,7 +106,7 @@ class StudentSaved extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final event = likedEvents[index];
                           final eventData = event.data() as Map<String, dynamic>;
-                          return _buildEventCard(eventData['eventName'], eventData['eventVenue']);
+                          return _buildEventCard(context, eventData, event.id); // Pass context and event data
                         },
                       );
                     },
@@ -174,50 +175,76 @@ class StudentSaved extends StatelessWidget {
     );
   }
 
-  // Method to build an event card
-  Widget _buildEventCard(String eventName, String eventVenue) {
-    return Card(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      elevation: 5,
-      child: Stack(
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.image, size: 60, color: Colors.grey), // Placeholder for event image
-              const SizedBox(height: 10),
-              Text(
-                eventName,
-                style: const TextStyle(
-                  fontFamily: 'FredokaOne',
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-              Text(
-                eventVenue,
-                style: const TextStyle(
-                  fontFamily: 'FredokaOne',
-                  fontSize: 14,
-                  color: Colors.black45,
-                ),
-              ),
-            ],
-          ),
-          // Red heart icon for saved events
-          Positioned(
-            top: 10,
-            left: 10,
-            child: Image.asset(
-              'assets/images/redheart.png',
-              height: 24,
-              width: 24,
+  Widget _buildEventCard(BuildContext context, Map<String, dynamic> eventData, String eventId) {
+    return GestureDetector(
+      onTap: () {
+        // Navigate to StudentEventDetails with event data
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StudentEventDetails(
+              eventName: eventData['eventName'] ?? 'Unknown Event',
+              eventVenue: eventData['eventVenue'] ?? 'Unknown Venue',
+              eventDescription: eventData['description'] ?? 'No description available.',
+              startTime: eventData['startTime'] ?? 'Not available',
+              endTime: eventData['endTime'] ?? 'Not available',
+              eventId: eventId,
+              eventDate: eventData['eventDate'] ?? 'Not available',
+              imageUrl: eventData['imageUrl'],
             ),
           ),
-        ],
+        );
+      },
+      child: Card(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        elevation: 5,
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                eventData['imageUrl'] != null
+                    ? Image.network(
+                  eventData['imageUrl'],
+                  height: 100,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                )
+                    : const Icon(Icons.image, size: 60, color: Colors.grey), // Placeholder for event image
+                const SizedBox(height: 10),
+                Text(
+                  eventData['eventName'] ?? 'Unnamed Event',
+                  style: const TextStyle(
+                    fontFamily: 'FredokaOne',
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  eventData['eventVenue'] ?? 'Unknown Venue',
+                  style: const TextStyle(
+                    fontFamily: 'FredokaOne',
+                    fontSize: 14,
+                    color: Colors.black45,
+                  ),
+                ),
+              ],
+            ),
+            // Red heart icon for saved events
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Image.asset(
+                'assets/images/redheart.png',
+                height: 24,
+                width: 24,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
