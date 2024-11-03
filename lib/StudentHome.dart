@@ -211,41 +211,36 @@ class _StudentHomeState extends State<StudentHome> {
                     final events = snapshot.data?.docs ?? [];
 
                     // Sort events by eventDate (most recent first)
-                    final sortedEvents = events
-                        .map((event) => event.data() as Map<String, dynamic>)
-                        .where((eventData) => eventData['eventDate'] != null) // Ensure there's an eventDate
-                        .toList();
+                    final sortedEvents = events.where((event) {
+                      final eventData = event.data() as Map<String, dynamic>;
+                      return eventData['eventDate'] != null; // Ensure there's an eventDate
+                    }).toList();
 
                     sortedEvents.sort((a, b) {
-                      // Convert eventDate to DateTime, handling Timestamp
-                      DateTime aDate = (a['eventDate'] as Timestamp).toDate();
-                      DateTime bDate = (b['eventDate'] as Timestamp).toDate();
+                      DateTime aDate = (a.data() as Map<String, dynamic>)['eventDate'].toDate();
+                      DateTime bDate = (b.data() as Map<String, dynamic>)['eventDate'].toDate();
                       return bDate.compareTo(aDate); // Most recent first
                     });
 
-                    if (sortedEvents.isEmpty) {
-                      return const Center(child: Text('No latest approved events available.'));
-                    }
-
                     return CarouselSlider(
                       options: CarouselOptions(
-                        height: 260, // Increased height for a longer card
+                        height: 260,
                         enlargeCenterPage: true,
                         autoPlay: false,
                         aspectRatio: 16 / 9,
                         enableInfiniteScroll: true,
-                        viewportFraction: 0.7, // Adjust viewport fraction if needed
+                        viewportFraction: 0.7,
                       ),
-                      items: sortedEvents.map((eventData) {
-                        final eventId = events.first.id;
+                      items: sortedEvents.map((event) {
+                        final eventData = event.data() as Map<String, dynamic>;
+                        final eventId = event.id; // Access event ID here directly
                         final eventDate = (eventData['eventDate'] as Timestamp).toDate();
                         final venues = List<String>.from(eventData['venues'] ?? []);
                         final venueText = venues.isNotEmpty ? venues.join(', ') : 'Unknown Venue';
-                        final imageUrl = eventData['imageUrl']; // Get the imageUrl
+                        final imageUrl = eventData['imageUrl'];
 
                         return GestureDetector(
                           onTap: () {
-                            // Navigate to StudentEventDetails with event data
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -256,8 +251,8 @@ class _StudentHomeState extends State<StudentHome> {
                                   startTime: eventData['startTime'] ?? 'Not available',
                                   endTime: eventData['endTime'] ?? 'Not available',
                                   eventId: eventId,
-                                  eventDate: DateFormat('yyyy-MM-dd').format(eventDate), // Pass formatted date
-                                  imageUrl: eventData['imageUrl'],
+                                  eventDate: DateFormat('yyyy-MM-dd').format(eventDate),
+                                  imageUrl: imageUrl,
                                 ),
                               ),
                             );
@@ -265,7 +260,7 @@ class _StudentHomeState extends State<StudentHome> {
                           child: _buildEventCard(
                             eventData['eventName'] ?? 'Unnamed Event',
                             venueText,
-                            imageUrl, // Pass the imageUrl
+                            imageUrl,
                           ),
                         );
                       }).toList(),

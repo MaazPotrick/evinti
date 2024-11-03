@@ -388,6 +388,15 @@ class _StudentEventDetailsState extends State<StudentEventDetails> {
                     color: Color(0xFFe8c9ab),
                   ),
                 ),
+                // Event Date
+                Text(
+                  'Date - ${widget.eventDate}',
+                  style: const TextStyle(
+                    fontFamily: 'FredokaOne',
+                    fontSize: 12,
+                    color: Color(0xFFe8c9ab),
+                  ),
+                ),
                 const Spacer(),
                 // Register or Attend Button
                 Center(
